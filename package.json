@@ -7,8 +7,9 @@
     "test": "test"
   },
   "scripts": {
-    "build-watch": "spago build --watch",
-    "build": "parcel static/index.html && spago build --watch"
+    "watch": "spago build --watch",
+    "dev": "parcel static/index.html && spago build --watch",
+    "build": "rm -r dist && spago build && parcel build static/index.html --no-source-maps --experimental-scope-hoisting"
   },
   "author": "",
   "license": "ISC",

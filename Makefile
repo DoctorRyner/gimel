@@ -1,13 +1,16 @@
 default:
 	npm i
 	spago build
-	make dev
-
-dev:
-	make -j build build-watch
+	make serve
 
 build:
-	npm run build
+	make build
 
-build-watch:
-	npm run build-watch
+serve:
+	make -j dev watch
+
+dev:
+	npm run dev
+
+watch:
+	npm run watch
