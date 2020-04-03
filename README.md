@@ -2,4 +2,4 @@
 
 ## How to run and test?
 
-`npm i && spago build && npm run build`
+Just type `make` in project root

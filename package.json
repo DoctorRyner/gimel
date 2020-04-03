@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "build:errors": "spago build --watch",
+    "build-watch": "spago build --watch",
     "build": "parcel static/index.html && spago build --watch"
   },
   "author": "",
