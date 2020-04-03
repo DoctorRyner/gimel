@@ -8,3 +8,5 @@ generated-docs
 .purs*
 .psa*
 .spago
+.cache
+dist
