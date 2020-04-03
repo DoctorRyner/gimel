@@ -9,45 +9,50 @@ import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (runAff_)
 import Effect.Console (errorShow, log)
-import Gimel.Html (Html(..), toReactHtml)
+import Gimel.Html (toReactHtml)
 import Gimel.Types (Application)
-import React (Children, ReactClass, createElement, getState, writeState)
+import React (Children, ReactClass, createElement, getState, modifyState)
 import React (component) as React
 import ReactDOM (render)
 import Web.DOM.NonElementParentNode (getElementById) as DOM
 import Web.HTML (window) as DOM
 import Web.HTML.HTMLDocument (toNonElementParentNode) as DOM
 import Web.HTML.Window (document) as DOM
+import Effect.Ref as Ref
 
 infix 4 Tuple as <:
 
-component :: forall model event. Application model event -> Html event
-component app = RawReact $ createElement (mkGimelApp app) {} []
+-- component :: forall model event. Application model event -> Html event
+-- component app = RawReact $ createElement (mkGimelApp app) {} []
 
-mkGimelApp :: forall model event. Application model event -> ReactClass { children :: Children | () }
+mkGimelApp :: forall event model. Show model => Application model event -> ReactClass { children :: Children | () }
 mkGimelApp app = React.component "Gimel" constructor
  where
   constructor this = do
     let Tuple initialModel initialAffs = app.init
 
-        runUpdate event = do
-          state <- getState this
+    modelRef <- Ref.new initialModel
 
-          let Tuple nextModel nextAffs = app.update state.model event
+    let runEvent event = do
+          model <- Ref.read modelRef
 
-          writeState this $ state { model = nextModel }
+          let Tuple nextModel nextAffs = app.update model event
 
-          runEvents nextAffs
+          Ref.write nextModel modelRef
 
-        runEvents affs = traverse_ (runAff_ $ either (log <<< show) runUpdate) affs
+          modifyState this $ \state -> state { model = nextModel }
+
+          runAffs nextAffs
+
+        runAffs affs = traverse_ (runAff_ $ either (log <<< show) runEvent) affs
 
     pure
       { state: { model: initialModel }
-      , componentDidMount: runEvents initialAffs
-      , render: (\state -> toReactHtml runUpdate $ app.view state.model) <$> getState this
+      , componentDidMount: runAffs initialAffs
+      , render: (\state -> toReactHtml runEvent $ app.view state.model) <$> getState this
       }
 
-runIn :: forall model event. String -> Application model event -> Effect Unit
+runIn :: forall model event. Show model => String -> Application model event -> Effect Unit
 runIn nodeId app = do
   win <- DOM.window
   doc <- DOM.document win
@@ -59,5 +64,5 @@ runIn nodeId app = do
       Just root -> render (createElement (mkGimelApp app) {} []) root *> mempty
       Nothing   -> errorShow $ "Can't find an element with an id " <> nodeId
 
-run :: forall model event. Application model event -> Effect Unit
+run :: forall model event. Show model => Application model event -> Effect Unit
 run = runIn "gimel"

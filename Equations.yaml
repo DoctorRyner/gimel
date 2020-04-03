@@ -2,4 +2,4 @@ default: sae --async build build-watch
 
 build: npm run build
 
-build-errors: npm run build-watch
+build-watch: npm run build-watch
