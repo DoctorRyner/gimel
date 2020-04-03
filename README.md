@@ -1,2 +1,5 @@
 # gimel
-A purescript UI library built upon the react
+
+## How to run and test?
+
+`npm i && spago build && npm run dev`
