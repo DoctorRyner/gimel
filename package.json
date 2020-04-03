@@ -1,0 +1,24 @@
+{
+  "name": "gimel-core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build:errors": "spago build --watch",
+    "build": "parcel static/index.html && spago build --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "parcel": "^1.12.4"
+  },
+  "dependencies": {
+    "@material-ui/core": "^4.9.8",
+    "@types/react": "^16.9.32",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  }
+}

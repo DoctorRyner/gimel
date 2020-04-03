@@ -2,4 +2,4 @@
 
 ## How to run and test?
 
-`npm i && spago build && npm run dev`
+`npm i && spago build && npm run build`
