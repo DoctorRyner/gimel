@@ -25,7 +25,7 @@ infix 4 Tuple as <:
 -- component :: forall model event. Application model event -> Html event
 -- component app = RawReact $ createElement (mkGimelApp app) {} []
 
-mkGimelApp :: forall event model. Show model => Application model event -> ReactClass { children :: Children | () }
+mkGimelApp :: forall event model. Application model event -> ReactClass { children :: Children | () }
 mkGimelApp app = React.component "Gimel" constructor
  where
   constructor this = do
@@ -52,7 +52,7 @@ mkGimelApp app = React.component "Gimel" constructor
       , render: (\state -> toReactHtml runEvent $ app.view state.model) <$> getState this
       }
 
-runIn :: forall model event. Show model => String -> Application model event -> Effect Unit
+runIn :: forall model event. String -> Application model event -> Effect Unit
 runIn nodeId app = do
   win <- DOM.window
   doc <- DOM.document win
@@ -64,5 +64,5 @@ runIn nodeId app = do
       Just root -> render (createElement (mkGimelApp app) {} []) root *> mempty
       Nothing   -> errorShow $ "Can't find an element with an id " <> nodeId
 
-run :: forall model event. Show model => Application model event -> Effect Unit
+run :: forall model event. Application model event -> Effect Unit
 run = runIn "gimel"
