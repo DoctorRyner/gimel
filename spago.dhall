@@ -6,7 +6,6 @@
   , "psci-support"
   , "react"
   , "react-dom"
-  , "react-mui"
   , "web-html"
   ]
 , packages = ./packages.dhall

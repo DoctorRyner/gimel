@@ -3,17 +3,6 @@ let upstream =
 
 let overrides = {=}
 
-let additions =
-    { react-mui =
-        { dependencies = [ "tscompat" ]
-        , repo         = "https://github.com/doolse/purescript-react-mui"
-        , version      = "v3.9.313"
-        }
-    , tscompat = 
-        { dependencies = [ "prelude" ]
-        , repo         = "https://github.com/doolse/purescript-tscompat"
-        , version      = "v1.0.1"
-        }
-    }
+let additions = {=}
 
 in  upstream // overrides // additions
