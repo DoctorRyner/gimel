@@ -1,7 +1,4 @@
 default: sae --async dev watch
 
-build: npm run build
-
 dev: npm run dev
-
 watch: npm run watch

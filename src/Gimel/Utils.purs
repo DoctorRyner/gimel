@@ -2,7 +2,8 @@ module Gimel.Utils where
 
 import Prelude
 
-import Effect.Aff (Aff)
+import Data.Int (toNumber)
+import Effect.Aff (Aff, Milliseconds(..), delay)
 import Gimel.Types (Update(..))
 
 infix 4 withEvent  as <<
@@ -21,3 +22,12 @@ withAff model aff = Update model [aff]
 
 withAffs :: forall model event. model -> Array (Aff event) -> Update event model
 withAffs = Update
+
+class Wait time where
+  wait :: time -> Aff Unit
+
+instance waitNumber :: Wait Number where
+  wait sec = delay $ Milliseconds $ sec * 1000.0
+
+instance waitInt :: Wait Int where
+  wait sec = delay $ Milliseconds $ toNumber $ sec * 1000

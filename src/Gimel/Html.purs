@@ -26,6 +26,9 @@ instance foldHtml :: Monoid (Html event) where
 text :: forall event. String -> Html event
 text = Text
 
+textS :: forall event a. Show a => a -> Html event
+textS = Text <<< show
+
 type El  = forall event. Array (Attribute event) -> Array (Html event) -> Html event
 type El_ = forall event. Array (Attribute event) -> Html event -> Html event
 type El' = forall event. Array (Html event) -> Html event
