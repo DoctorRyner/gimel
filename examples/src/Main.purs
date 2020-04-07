@@ -4,7 +4,9 @@ import Prelude hiding (div)
 
 import Data.Foldable (fold)
 import Effect (Effect)
+import Effect.Console (log)
 import Gimel.Attributes (onClick)
+import Gimel.Dispatcher (Dispatcher)
 import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
 import Gimel.Types (Update)
@@ -35,9 +37,15 @@ update model = case _ of
   Batch events  -> model `withEvents` events
   IncEachSecond -> withAff model $ wait 1 $> Batch [Inc, IncEachSecond]
 
+subs :: Model -> Dispatcher Event -> Array (Effect Unit)
+subs model runEvent =
+  [ log "kek"
+  ]
+
 main :: Effect Unit
 main = run
   { init: initialModel `withEvent` IncEachSecond
   , view
   , update
+  , subs
   }

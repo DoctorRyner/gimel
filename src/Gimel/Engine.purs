@@ -3,7 +3,7 @@ module Gimel.Engine where
 import Prelude
 
 import Data.Either (either)
-import Data.Foldable (traverse_)
+import Data.Foldable (fold, traverse_)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (runAff_)
@@ -40,6 +40,9 @@ mkGimelApp app = React.component "Gimel" constructor
           modifyState this $ \state -> state { model = nextModel }
 
           runAffs nextAffs
+
+          -- SUBS
+          fold $ app.subs nextModel runEvent
 
         runAffs affs = traverse_ (runAff_ $ either (log <<< show) runEvent) affs
 

@@ -4,15 +4,15 @@ import Prelude
 
 import Effect (Effect)
 import Effect.Aff (Aff)
+import Gimel.Dispatcher (Dispatcher)
 import Gimel.Html (Html)
 
 type Application model event =
   { init   :: Update event model
   , view   :: model -> Html event
   , update :: model -> event -> Update event model
+  , subs   :: model -> Dispatcher event -> Array (Effect Unit)
   }
-
-type Dispatcher event = event -> Effect Unit
 
 type State model = { model :: model }
 
