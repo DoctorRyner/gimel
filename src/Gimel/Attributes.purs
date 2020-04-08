@@ -3,13 +3,13 @@ module Gimel.Attributes where
 import Prelude
 
 import Effect.Uncurried (mkEffectFn1)
-import Gimel.Dispatcher (Dispatcher)
+import Gimel.EventRunner (EventRunner)
 import React.DOM.Props (Props, unsafeMkProps)
 import React.SyntheticEvent (SyntheticEvent)
 import Unsafe.Coerce (unsafeCoerce)
 
-target :: forall a b. a -> b
-target e = (unsafeCoerce e).target
+targetOf :: forall a b. a -> b
+targetOf e = (unsafeCoerce e).target
 
 data Attribute event
   = Attribute Props
@@ -24,312 +24,304 @@ on_ eventName f = ReactEvent ("on" <> eventName) f
 attribute :: forall event propValue. String -> propValue -> Attribute event
 attribute k v = Attribute $ unsafeMkProps k v
 
-type E = forall event. event -> Attribute event
-type E_ a = forall event. (a -> event) -> Attribute event
-type A a = forall event. a -> Attribute event
-type AR = forall a event. Record a -> Attribute event
-
-a :: forall a. String -> A a
-a = attribute
-
 infix 4 attribute as =:
 
-toReactProp :: forall event. Dispatcher event -> Attribute event -> Props
-toReactProp dispatch = case _ of
-  Attribute prop -> prop
-  ReactEvent eventName event -> unsafeMkProps eventName $ mkEffectFn1 (dispatch <<< event)
+toReactProp :: forall event. EventRunner event -> Attribute event -> Props
+toReactProp runEvent = case _ of
+  Attribute prop             -> prop
+  ReactEvent eventName event -> unsafeMkProps eventName $ mkEffectFn1 (runEvent <<< event)
 
 -- Events
 
-onClick :: E
+onClick :: forall event. event -> Attribute event
 onClick = on "Click"
 
-onChange :: E_ String
-onChange f = on_ "Change" \e -> f $ (target e).value
+onChange :: forall event. (String -> event) -> Attribute event
+onChange f = on_ "Change" \e -> f (targetOf e).value
 
-onCheck :: E_ Boolean
-onCheck f = on_ "Check" \e -> f $ (target e).checked
+onCheck :: forall event. (Boolean -> event) -> Attribute event
+onCheck f = on_ "Check" \e -> f (targetOf e).checked
 
--- Attrs
+-- Attributes
 
-_data :: AR
-_data = a "data"
+_data :: forall a event. Record a -> Attribute event
+_data = attribute "data"
 
-style :: AR
-style = a "style"
+style :: forall a event. Record a -> Attribute event
+style = attribute "style"
 
-accept :: A String
-accept = a "accept"
+accept :: forall event. String -> Attribute event
+accept = attribute "accept"
 
-acceptCharset :: A String
-acceptCharset = a "accept-charset"
+acceptCharset :: forall event. String -> Attribute event
+acceptCharset = attribute "accept-charset"
 
-accessKey :: A String
-accessKey = a "accesskey"
+accessKey :: forall event. String -> Attribute event
+accessKey = attribute "accesskey"
 
-allowFullScreen :: A Boolean
-allowFullScreen = a "allowfullscreen"
+allowFullScreen :: forall event. Boolean -> Attribute event
+allowFullScreen = attribute "allowfullscreen"
 
-allowTransparency :: A Boolean
-allowTransparency = a "allowTransparency"
+allowTransparency :: forall event. Boolean -> Attribute event
+allowTransparency = attribute "allowTransparency"
 
-alt :: A String
-alt = a "alt"
+alt :: forall event. String -> Attribute event
+alt = attribute "alt"
 
-async :: A Boolean
-async = a "async"
+async :: forall event. Boolean -> Attribute event
+async = attribute "async"
 
-autoComplete :: A String
-autoComplete = a "autocomplete"
+autoComplete :: forall event. String -> Attribute event
+autoComplete = attribute "autocomplete"
 
-autoFocus :: A Boolean
-autoFocus = a "autofocus"
+autoFocus :: forall event. Boolean -> Attribute event
+autoFocus = attribute "autofocus"
 
-autoPlay :: A Boolean
-autoPlay = a "autoplay"
+autoPlay :: forall event. Boolean -> Attribute event
+autoPlay = attribute "autoplay"
 
-capture :: A Boolean
-capture = a "capture"
+capture :: forall event. Boolean -> Attribute event
+capture = attribute "capture"
 
-cellPadding :: A String
-cellPadding = a "cellpadding"
+cellPadding :: forall event. String -> Attribute event
+cellPadding = attribute "cellpadding"
 
-cellSpacing :: A String
-cellSpacing = a "cellspacing"
+cellSpacing :: forall event. String -> Attribute event
+cellSpacing = attribute "cellspacing"
 
-charset :: A String
-charset = a "charset"
+charset :: forall event. String -> Attribute event
+charset = attribute "charset"
 
-challenge :: A Boolean
-challenge = a "challenge"
+challenge :: forall event. Boolean -> Attribute event
+challenge = attribute "challenge"
 
-checked :: A Boolean
-checked = a "checked"
+checked :: forall event. Boolean -> Attribute event
+checked = attribute "checked"
 
-cite :: A String
-cite = a "cite"
+cite :: forall event. String -> Attribute event
+cite = attribute "cite"
 
-classID :: A String
-classID = a "classid"
+classID :: forall event. String -> Attribute event
+classID = attribute "classid"
 
-className :: A String
-className = a "className"
+className :: forall event. String -> Attribute event
+className = attribute "className"
 
-cols :: A Int
-cols = a "cols"
+cols :: forall event. Int -> Attribute event
+cols = attribute "cols"
 
-colspan :: A Int
-colspan = a "colspan"
+colspan :: forall event. Int -> Attribute event
+colspan = attribute "colspan"
 
-content :: A String
-content = a "content"
+content :: forall event. String -> Attribute event
+content = attribute "content"
 
-contentEditable :: A Boolean
-contentEditable = a "contenteditable"
+contentEditable :: forall event. Boolean -> Attribute event
+contentEditable = attribute "contenteditable"
 
-contextMenu :: A String
-contextMenu = a "contextmenu"
+contextMenu :: forall event. String -> Attribute event
+contextMenu = attribute "contextmenu"
 
-controls :: A Boolean
-controls = a "controls"
+controls :: forall event. Boolean -> Attribute event
+controls = attribute "controls"
 
-coords :: A String
-coords = a "coords"
+coords :: forall event. String -> Attribute event
+coords = attribute "coords"
 
-crossorigin :: A String
-crossorigin = a "crossorigin"
+crossorigin :: forall event. String -> Attribute event
+crossorigin = attribute "crossorigin"
 
-dateTime :: A String
-dateTime = a "datetime"
+dateTime :: forall event. String -> Attribute event
+dateTime = attribute "datetime"
 
-default :: A Boolean
-default = a "default"
+default :: forall event. Boolean -> Attribute event
+default = attribute "default"
 
-defaultChecked :: A Boolean
-defaultChecked = a "defaultChecked"
+defaultChecked :: forall event. Boolean -> Attribute event
+defaultChecked = attribute "defaultChecked"
 
-defaultValue :: A Boolean
-defaultValue = a "defaultValue"
+defaultValue :: forall event. Boolean -> Attribute event
+defaultValue = attribute "defaultValue"
 
-defer :: A Boolean
-defer = a "defer"
+defer :: forall event. Boolean -> Attribute event
+defer = attribute "defer"
 
-dir :: A String
-dir = a "dir"
+dir :: forall event. String -> Attribute event
+dir = attribute "dir"
 
-disabled :: A Boolean
-disabled = a "disabled"
+disabled :: forall event. Boolean -> Attribute event
+disabled = attribute "disabled"
 
-download :: A String
-download = a "download"
+download :: forall event. String -> Attribute event
+download = attribute "download"
 
-draggable :: A Boolean
-draggable = a "draggable"
+draggable :: forall event. Boolean -> Attribute event
+draggable = attribute "draggable"
 
-encType :: A String
-encType = a "enctype"
+encType :: forall event. String -> Attribute event
+encType = attribute "enctype"
 
-form :: A String
-form = a "form"
+form :: forall event. String -> Attribute event
+form = attribute "form"
 
-formAction :: A String
-formAction = a "formaction"
+formAction :: forall event. String -> Attribute event
+formAction = attribute "formaction"
 
-formEncType :: A String
-formEncType = a "formenctype"
+formEncType :: forall event. String -> Attribute event
+formEncType = attribute "formenctype"
 
-formMethod :: A String
-formMethod = a "formmethod"
+formMethod :: forall event. String -> Attribute event
+formMethod = attribute "formmethod"
 
-formNoValidate :: A Boolean
-formNoValidate = a "formnovalidate"
+formNoValidate :: forall event. Boolean -> Attribute event
+formNoValidate = attribute "formnovalidate"
 
-formTarget :: A String
-formTarget = a "formtarget"
+formTarget :: forall event. String -> Attribute event
+formTarget = attribute "formtarget"
 
-headers :: A String
-headers = a "headers"
+headers :: forall event. String -> Attribute event
+headers = attribute "headers"
 
-height :: A String
-height = a "height"
+height :: forall event. String -> Attribute event
+height = attribute "height"
 
-hidden :: A Boolean
-hidden = a "hidden"
+hidden :: forall event. Boolean -> Attribute event
+hidden = attribute "hidden"
 
-high :: A String
-high = a "high"
+high :: forall event. String -> Attribute event
+high = attribute "high"
 
-href :: A String
-href = a "href"
+href :: forall event. String -> Attribute event
+href = attribute "href"
 
-hrefLang :: A String
-hrefLang = a "hreflang"
+hrefLang :: forall event. String -> Attribute event
+hrefLang = attribute "hreflang"
 
-htmlFor :: A String
-htmlFor = a "htmlfor"
+htmlFor :: forall event. String -> Attribute event
+htmlFor = attribute "htmlfor"
 
-httpEquiv :: A String
-httpEquiv = a "httpequiv"
+httpEquiv :: forall event. String -> Attribute event
+httpEquiv = attribute "httpequiv"
 
-icon :: A String
-icon = a "icon"
+icon :: forall event. String -> Attribute event
+icon = attribute "icon"
 
-_id :: A String
-_id = a "id"
+_id :: forall event. String -> Attribute event
+_id = attribute "id"
 
-inputMode :: A String
-inputMode = a "inputmode"
+inputMode :: forall event. String -> Attribute event
+inputMode = attribute "inputmode"
 
-integrity :: A String
-integrity = a "integrity"
+integrity :: forall event. String -> Attribute event
+integrity = attribute "integrity"
 
-is :: A String
-is = a "is"
+is :: forall event. String -> Attribute event
+is = attribute "is"
 
-key :: A String
-key = a "key"
+key :: forall event. String -> Attribute event
+key = attribute "key"
 
-keyparams :: A String
-keyparams = a "keyparams"
+keyparams :: forall event. String -> Attribute event
+keyparams = attribute "keyparams"
 
-keytype :: A String
-keytype = a "keytype"
+keytype :: forall event. String -> Attribute event
+keytype = attribute "keytype"
 
-kind :: A String
-kind = a "kind"
+kind :: forall event. String -> Attribute event
+kind = attribute "kind"
 
-label :: A String
-label = a "label"
+label :: forall event. String -> Attribute event
+label = attribute "label"
 
-list :: A String
-list = a "list"
+list :: forall event. String -> Attribute event
+list = attribute "list"
 
-lang :: A String
-lang = a "lang"
+lang :: forall event. String -> Attribute event
+lang = attribute "lang"
 
-loop :: A Boolean
-loop = a "loop"
+loop :: forall event. Boolean -> Attribute event
+loop = attribute "loop"
 
-low :: A String
-low = a "low"
+low :: forall event. String -> Attribute event
+low = attribute "low"
 
-manifest :: A String
-manifest = a "manifest"
+manifest :: forall event. String -> Attribute event
+manifest = attribute "manifest"
 
-marginHeight :: A String
-marginHeight = a "marginheight"
+marginHeight :: forall event. String -> Attribute event
+marginHeight = attribute "marginheight"
 
-marginWidth :: A String
-marginWidth = a "marginwidth"
+marginWidth :: forall event. String -> Attribute event
+marginWidth = attribute "marginwidth"
 
-max :: A String
-max = a "max"
+max :: forall event. String -> Attribute event
+max = attribute "max"
 
-maxLenght :: A String
-maxLenght = a "maxlenght"
+maxLenght :: forall event. String -> Attribute event
+maxLenght = attribute "maxlenght"
 
-media :: A String
-media = a "media"
+media :: forall event. String -> Attribute event
+media = attribute "media"
 
-mediaGroup :: A String
-mediaGroup = a "media"
+mediaGroup :: forall event. String -> Attribute event
+mediaGroup = attribute "media"
 
-method :: A String
-method = a "method"
+method :: forall event. String -> Attribute event
+method = attribute "method"
 
-min :: A String
-min = a "min"
+min :: forall event. String -> Attribute event
+min = attribute "min"
 
-minLength :: A String
-minLength = a "minlenght"
+minLength :: forall event. String -> Attribute event
+minLength = attribute "minlenght"
 
-muted :: A Boolean
-muted = a "muted"
+muted :: forall event. Boolean -> Attribute event
+muted = attribute "muted"
 
-multiple :: A Boolean
-multiple = a "multiple"
+multiple :: forall event. Boolean -> Attribute event
+multiple = attribute "multiple"
 
-name :: A String
-name = a "name"
+name :: forall event. String -> Attribute event
+name = attribute "name"
 
-nonce :: A String
-nonce = a "nonce"
+nonce :: forall event. String -> Attribute event
+nonce = attribute "nonce"
 
-noValidate :: A Boolean
-noValidate = a "novalidate"
+noValidate :: forall event. Boolean -> Attribute event
+noValidate = attribute "novalidate"
 
-open :: A Boolean
-open = a "open"
+open :: forall event. Boolean -> Attribute event
+open = attribute "open"
 
-optimum :: A String
-optimum = a "optimum"
+optimum :: forall event. String -> Attribute event
+optimum = attribute "optimum"
 
-pattern :: A String
-pattern = a "pattern"
+pattern :: forall event. String -> Attribute event
+pattern = attribute "pattern"
 
-placeholder :: A String
-placeholder = a "placeholder"
+placeholder :: forall event. String -> Attribute event
+placeholder = attribute "placeholder"
 
-poster :: A String
-poster = a "poster"
+poster :: forall event. String -> Attribute event
+poster = attribute "poster"
 
-preload :: A String
-preload = a "preload"
+preload :: forall event. String -> Attribute event
+preload = attribute "preload"
 
-profile :: A String
-profile = a "profile"
+profile :: forall event. String -> Attribute event
+profile = attribute "profile"
 
-radioGroup :: A String
-radioGroup = a "radiogroup"
+radioGroup :: forall event. String -> Attribute event
+radioGroup = attribute "radiogroup"
 
-readOnly :: A Boolean
-readOnly = a "readonly"
+readOnly :: forall event. Boolean -> Attribute event
+readOnly = attribute "readonly"
 
-rel :: A String
-rel = a "rel"
+rel :: forall event. String -> Attribute event
+rel = attribute "rel"
 
-required :: A Boolean
-required = a "required"
+required :: forall event. Boolean -> Attribute event
+required = attribute "required"
 
-value :: A String
-value = a "value"
+value :: forall event. String -> Attribute event
+value = attribute "value"

@@ -2,32 +2,36 @@ module Gimel.Types where
 
 import Prelude
 
+import Data.Bifunctor (class Bifunctor)
 import Effect (Effect)
 import Effect.Aff (Aff)
-import Gimel.Dispatcher (Dispatcher)
+import Gimel.EventRunner (EventRunner)
 import Gimel.Html (Html)
 
 type Application model event =
-  { init   :: Update event model
+  { init   :: Update model event
   , view   :: model -> Html event
-  , update :: model -> event -> Update event model
-  , subs   :: model -> Dispatcher event -> Array (Effect Unit)
+  , update :: model -> event -> Update model event
+  , subs   :: model -> EventRunner event -> Array (Effect Unit)
   }
 
-type State model = { model :: model }
+type Update model event = UpdateM event model
 
-data Update event model = Update model (Array (Aff event))
+newtype UpdateM event model = Update { model :: model, affs :: Array (Aff event) }
 
-instance functorUpdate :: Functor (Update event) where
-  map f (Update model affs) = Update (f model) affs
+instance bifunctorUpdate :: Bifunctor UpdateM where
+  bimap g f (Update context) = Update context { model = f context.model, affs = (map g) <$> context.affs }
 
-instance applyUpdate :: Apply (Update event) where
-  apply (Update f _) upd = f <$> upd
+instance functorUpdate :: Functor (UpdateM event) where
+  map f (Update context) = Update context { model = f context.model }
 
-instance applicativeUpdate :: Applicative (Update event) where
-  pure model = Update model []
+instance applyUpdate :: Apply (UpdateM event) where
+  apply (Update context) upd = context.model <$> upd
 
-instance bindUpdate :: Bind (Update event) where
-  bind (Update model _) f = f model
+instance applicativeUpdate :: Applicative (UpdateM event) where
+  pure model = Update { model, affs: [] }
 
-instance monadUpdate :: Monad (Update event)
+instance bindUpdate :: Bind (UpdateM event) where
+  bind (Update context) f = f context.model
+
+instance monadUpdate :: Monad (UpdateM event)

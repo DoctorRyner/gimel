@@ -4,15 +4,20 @@ import Prelude
 
 import Data.Foldable (fold)
 import Gimel.Attributes (Attribute, toReactProp)
-import Gimel.Dispatcher (Dispatcher)
+import Gimel.EventRunner (EventRunner)
 import React (Children, ReactClass, ReactElement, unsafeCreateElement)
 import React.DOM (IsDynamic(..), mkDOM)
 import React.DOM (text) as DOM
 import React.DOM.Props (Props, unsafeFromPropsArray)
 
+type ReactEl = Array Props -> Array ReactElement -> ReactElement
+type El      = forall event. Array (Attribute event) -> Array (Html event) -> Html event
+type El_     = forall event. Array (Attribute event) -> Html event -> Html event
+type El'     = forall event. Array (Html event) -> Html event
+type ElAttrs = forall event. Array (Attribute event) -> Html event
+
 data Html event
-  = Html String (Array (Attribute event)) (Array (Html event))
-  | HtmlReact (Array Props -> Array ReactElement -> ReactElement) (Array (Attribute event)) (Array (Html event))
+  = Html ReactEl (Array (Attribute event)) (Array (Html event))
   | Text String
   | Fragment (Array (Html event))
   | RawReact ReactElement
@@ -29,19 +34,17 @@ text = Text
 textS :: forall event a. Show a => a -> Html event
 textS = Text <<< show
 
-type El  = forall event. Array (Attribute event) -> Array (Html event) -> Html event
-type El_ = forall event. Array (Attribute event) -> Html event -> Html event
-type El' = forall event. Array (Html event) -> Html event
-type ElAttrs = forall event. Array (Attribute event) -> Html event
+reactNodeFromTag :: String -> Array Props -> Array ReactElement -> ReactElement
+reactNodeFromTag = mkDOM (IsDynamic false)
 
-el :: String -> El
-el = Html
+el :: forall event. String -> Array (Attribute event) -> Array (Html event) -> Html event
+el tagName = Html (reactNodeFromTag tagName)
 
-el_ :: String -> El_
-el_ tagName attrs child = Html tagName attrs [child]
+el_ :: forall event. String -> Array (Attribute event) -> Html event -> Html event
+el_ tagName attrs child = Html (reactNodeFromTag tagName) attrs [child]
 
-el' :: String -> El'
-el' tagName = Html tagName []
+el' :: forall event. String -> Array (Html event) -> Html event
+el' tagName = Html (reactNodeFromTag tagName) []
 
 elAttrs :: String -> ElAttrs
 elAttrs tagName attrs = el tagName attrs []
@@ -54,1030 +57,1026 @@ react :: forall props event
       -> Array (Attribute event)
       -> Array (Html event)
       -> Html event
-react class_ = HtmlReact (unsafeCreateElement class_ <<< unsafeFromPropsArray)
+react class_ = Html (unsafeCreateElement class_ <<< unsafeFromPropsArray)
 
-mkR :: String -> Array Props -> Array ReactElement -> ReactElement
-mkR = mkDOM (IsDynamic false)
-
-toReactHtml :: forall event. Dispatcher event -> Html event -> ReactElement
-toReactHtml dispatch = case _ of
-  Html tagName attrs childs      -> mkR tagName (map (toReactProp dispatch) attrs) (map (toReactHtml dispatch) childs)
-  HtmlReact element attrs childs -> element (map (toReactProp dispatch) attrs) (map (toReactHtml dispatch) childs)
-  Text str                       -> DOM.text str
-  RawReact element               -> element
-  Fragment htmls                 -> fold $ map (toReactHtml dispatch) htmls
+toReactHtml :: forall event. EventRunner event -> Html event -> ReactElement
+toReactHtml runEvent = case _ of
+  Html element attrs childs -> element (map (toReactProp runEvent) attrs) (map (toReactHtml runEvent) childs)
+  Text str                  -> DOM.text str
+  RawReact element          -> element
+  Fragment htmls            -> fold $ map (toReactHtml runEvent) htmls
 
 -- Tags
 
-a_ :: El_
+a_ :: forall event. Array (Attribute event) -> Html event -> Html event
 a_ = el_ "a"
 
-a :: El
+a :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 a = el "a"
 
-a' :: El'
+a' :: forall event. Array (Html event) -> Html event
 a' = el' "a"
 
-abbr_ :: El_
+abbr_ :: forall event. Array (Attribute event) -> Html event -> Html event
 abbr_ = el_ "abbr"
 
-abbr :: El
+abbr :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 abbr = el "abbr"
 
-abbr' :: El'
+abbr' :: forall event. Array (Html event) -> Html event
 abbr' = el' "abbr"
 
-address_ :: El_
+address_ :: forall event. Array (Attribute event) -> Html event -> Html event
 address_ = el_ "address"
 
-address :: El
+address :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 address = el "address"
 
-address' :: El'
+address' :: forall event. Array (Html event) -> Html event
 address' = el' "address"
 
-article_ :: El_
+article_ :: forall event. Array (Attribute event) -> Html event -> Html event
 article_ = el_ "article"
 
-article :: El
+article :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 article = el "article"
 
-article' :: El'
+article' :: forall event. Array (Html event) -> Html event
 article' = el' "article"
 
-aside_ :: El_
+aside_ :: forall event. Array (Attribute event) -> Html event -> Html event
 aside_ = el_ "aside"
 
-aside :: El
+aside :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 aside = el "aside"
 
-aside' :: El'
+aside' :: forall event. Array (Html event) -> Html event
 aside' = el' "aside"
 
-audio_ :: El_
+audio_ :: forall event. Array (Attribute event) -> Html event -> Html event
 audio_ = el_ "audio"
 
-audio :: El
+audio :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 audio = el "audio"
 
-audio' :: El'
+audio' :: forall event. Array (Html event) -> Html event
 audio' = el' "audio"
 
-b_ :: El_
+b_ :: forall event. Array (Attribute event) -> Html event -> Html event
 b_ = el_ "b"
 
-b :: El
+b :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 b = el "b"
 
-b' :: El'
+b' :: forall event. Array (Html event) -> Html event
 b' = el' "b"
 
-base_ :: El_
+base_ :: forall event. Array (Attribute event) -> Html event -> Html event
 base_ = el_ "base"
 
-base :: El
+base :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 base = el "base"
 
-base' :: El'
+base' :: forall event. Array (Html event) -> Html event
 base' = el' "base"
 
-bdi_ :: El_
+bdi_ :: forall event. Array (Attribute event) -> Html event -> Html event
 bdi_ = el_ "bdi"
 
-bdi :: El
+bdi :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 bdi = el "bdi"
 
-bdi' :: El'
+bdi' :: forall event. Array (Html event) -> Html event
 bdi' = el' "bdi"
 
-bdo_ :: El_
+bdo_ :: forall event. Array (Attribute event) -> Html event -> Html event
 bdo_ = el_ "bdo"
 
-bdo :: El
+bdo :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 bdo = el "bdo"
 
-bdo' :: El'
+bdo' :: forall event. Array (Html event) -> Html event
 bdo' = el' "bdo"
 
-blockquote_ :: El_
+blockquote_ :: forall event. Array (Attribute event) -> Html event -> Html event
 blockquote_ = el_ "blockquote"
 
-blockquote :: El
+blockquote :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 blockquote = el "blockquote"
 
-blockquote' :: El'
+blockquote' :: forall event. Array (Html event) -> Html event
 blockquote' = el' "blockquote"
 
-body_ :: El_
+body_ :: forall event. Array (Attribute event) -> Html event -> Html event
 body_ = el_ "body"
 
-body :: El
+body :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 body = el "body"
 
-body' :: El'
+body' :: forall event. Array (Html event) -> Html event
 body' = el' "body"
 
-button_ :: El_
+button_ :: forall event. Array (Attribute event) -> Html event -> Html event
 button_ = el_ "button"
 
-button :: El
+button :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 button = el "button"
 
-button' :: El'
+button' :: forall event. Array (Html event) -> Html event
 button' = el' "button"
 
-canvas_ :: El_
+canvas_ :: forall event. Array (Attribute event) -> Html event -> Html event
 canvas_ = el_ "canvas"
 
-canvas :: El
+canvas :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 canvas = el "canvas"
 
-canvas' :: El'
+canvas' :: forall event. Array (Html event) -> Html event
 canvas' = el' "canvas"
 
-caption_ :: El_
+caption_ :: forall event. Array (Attribute event) -> Html event -> Html event
 caption_ = el_ "caption"
 
-caption :: El
+caption :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 caption = el "caption"
 
-caption' :: El'
+caption' :: forall event. Array (Html event) -> Html event
 caption' = el' "caption"
 
-cite_ :: El_
+cite_ :: forall event. Array (Attribute event) -> Html event -> Html event
 cite_ = el_ "cite"
 
-cite :: El
+cite :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 cite = el "cite"
 
-cite' :: El'
+cite' :: forall event. Array (Html event) -> Html event
 cite' = el' "cite"
 
-code_ :: El_
+code_ :: forall event. Array (Attribute event) -> Html event -> Html event
 code_ = el_ "code"
 
-code :: El
+code :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 code = el "code"
 
-code' :: El'
+code' :: forall event. Array (Html event) -> Html event
 code' = el' "code"
 
-col_ :: El_
+col_ :: forall event. Array (Attribute event) -> Html event -> Html event
 col_ = el_ "col"
 
-col :: El
+col :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 col = el "col"
 
-col' :: El'
+col' :: forall event. Array (Html event) -> Html event
 col' = el' "col"
 
-colgroup_ :: El_
+colgroup_ :: forall event. Array (Attribute event) -> Html event -> Html event
 colgroup_ = el_ "colgroup"
 
-colgroup :: El
+colgroup :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 colgroup = el "colgroup"
 
-colgroup' :: El'
+colgroup' :: forall event. Array (Html event) -> Html event
 colgroup' = el' "colgroup"
 
-data_ :: El
+data_ :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 data_ = el "data"
 
-data' :: El'
+data' :: forall event. Array (Html event) -> Html event
 data' = el' "data"
 
-datalist_ :: El_
+datalist_ :: forall event. Array (Attribute event) -> Html event -> Html event
 datalist_ = el_ "datalist"
 
-datalist :: El
+datalist :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 datalist = el "datalist"
 
-datalist' :: El'
+datalist' :: forall event. Array (Html event) -> Html event
 datalist' = el' "datalist"
 
-dd_ :: El_
+dd_ :: forall event. Array (Attribute event) -> Html event -> Html event
 dd_ = el_ "dd"
 
-dd :: El
+dd :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 dd = el "dd"
 
-dd' :: El'
+dd' :: forall event. Array (Html event) -> Html event
 dd' = el' "dd"
 
-del_ :: El_
+del_ :: forall event. Array (Attribute event) -> Html event -> Html event
 del_ = el_ "del"
 
-del :: El
+del :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 del = el "del"
 
-del' :: El'
+del' :: forall event. Array (Html event) -> Html event
 del' = el' "del"
 
-details_ :: El_
+details_ :: forall event. Array (Attribute event) -> Html event -> Html event
 details_ = el_ "details"
 
-details :: El
+details :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 details = el "details"
 
-details' :: El'
+details' :: forall event. Array (Html event) -> Html event
 details' = el' "details"
 
-dfn_ :: El_
+dfn_ :: forall event. Array (Attribute event) -> Html event -> Html event
 dfn_ = el_ "dfn"
 
-dfn :: El
+dfn :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 dfn = el "dfn"
 
-dfn' :: El'
+dfn' :: forall event. Array (Html event) -> Html event
 dfn' = el' "dfn"
 
-dialog_ :: El_
+dialog_ :: forall event. Array (Attribute event) -> Html event -> Html event
 dialog_ = el_ "dialog"
 
-dialog :: El
+dialog :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 dialog = el "dialog"
 
-dialog' :: El'
+dialog' :: forall event. Array (Html event) -> Html event
 dialog' = el' "dialog"
 
-div_ :: El_
+div_ :: forall event. Array (Attribute event) -> Html event -> Html event
 div_ = el_ "div"
 
-div :: El
+div :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 div = el "div"
 
-div' :: El'
+div' :: forall event. Array (Html event) -> Html event
 div' = el' "div"
 
-dl_ :: El_
+dl_ :: forall event. Array (Attribute event) -> Html event -> Html event
 dl_ = el_ "dl"
 
-dl :: El
+dl :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 dl = el "dl"
 
-dl' :: El'
+dl' :: forall event. Array (Html event) -> Html event
 dl' = el' "dl"
 
-dt_ :: El_
+dt_ :: forall event. Array (Attribute event) -> Html event -> Html event
 dt_ = el_ "dt"
 
-dt :: El
+dt :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 dt = el "dt"
 
-dt' :: El'
+dt' :: forall event. Array (Html event) -> Html event
 dt' = el' "dt"
 
-em_ :: El_
+em_ :: forall event. Array (Attribute event) -> Html event -> Html event
 em_ = el_ "em"
 
-em :: El
+em :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 em = el "em"
 
-em' :: El'
+em' :: forall event. Array (Html event) -> Html event
 em' = el' "em"
 
-embed_ :: El_
+embed_ :: forall event. Array (Attribute event) -> Html event -> Html event
 embed_ = el_ "embed"
 
-embed :: El
+embed :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 embed = el "embed"
 
-embed' :: El'
+embed' :: forall event. Array (Html event) -> Html event
 embed' = el' "embed"
 
-fieldset_ :: El_
+fieldset_ :: forall event. Array (Attribute event) -> Html event -> Html event
 fieldset_ = el_ "fieldset"
 
-fieldset :: El
+fieldset :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 fieldset = el "fieldset"
 
-fieldset' :: El'
+fieldset' :: forall event. Array (Html event) -> Html event
 fieldset' = el' "fieldset"
 
-figcaption_ :: El_
+figcaption_ :: forall event. Array (Attribute event) -> Html event -> Html event
 figcaption_ = el_ "figcaption"
 
-figcaption :: El
+figcaption :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 figcaption = el "figcaption"
 
-figcaption' :: El'
+figcaption' :: forall event. Array (Html event) -> Html event
 figcaption' = el' "figcaption"
 
-figure_ :: El_
+figure_ :: forall event. Array (Attribute event) -> Html event -> Html event
 figure_ = el_ "figure"
 
-figure :: El
+figure :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 figure = el "figure"
 
-figure' :: El'
+figure' :: forall event. Array (Html event) -> Html event
 figure' = el' "figure"
 
-footer_ :: El_
+footer_ :: forall event. Array (Attribute event) -> Html event -> Html event
 footer_ = el_ "footer"
 
-footer :: El
+footer :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 footer = el "footer"
 
-footer' :: El'
+footer' :: forall event. Array (Html event) -> Html event
 footer' = el' "footer"
 
-form_ :: El_
+form_ :: forall event. Array (Attribute event) -> Html event -> Html event
 form_ = el_ "form"
 
-form :: El
+form :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 form = el "form"
 
-form' :: El'
+form' :: forall event. Array (Html event) -> Html event
 form' = el' "form"
 
-h1_ :: El_
+h1_ :: forall event. Array (Attribute event) -> Html event -> Html event
 h1_ = el_ "h1"
 
-h1 :: El
+h1 :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 h1 = el "h1"
 
-h1' :: El'
+h1' :: forall event. Array (Html event) -> Html event
 h1' = el' "h1"
 
-h2_ :: El_
+h2_ :: forall event. Array (Attribute event) -> Html event -> Html event
 h2_ = el_ "h2"
 
-h2 :: El
+h2 :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 h2 = el "h2"
 
-h2' :: El'
+h2' :: forall event. Array (Html event) -> Html event
 h2' = el' "h2"
 
-h3_ :: El_
+h3_ :: forall event. Array (Attribute event) -> Html event -> Html event
 h3_ = el_ "h3"
 
-h3 :: El
+h3 :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 h3 = el "h3"
 
-h3' :: El'
+h3' :: forall event. Array (Html event) -> Html event
 h3' = el' "h3"
 
-h4_ :: El_
+h4_ :: forall event. Array (Attribute event) -> Html event -> Html event
 h4_ = el_ "h4"
 
-h4 :: El
+h4 :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 h4 = el "h4"
 
-h4' :: El'
+h4' :: forall event. Array (Html event) -> Html event
 h4' = el' "h4"
 
-h5_ :: El_
+h5_ :: forall event. Array (Attribute event) -> Html event -> Html event
 h5_ = el_ "h5"
 
-h5 :: El
+h5 :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 h5 = el "h5"
 
-h5' :: El'
+h5' :: forall event. Array (Html event) -> Html event
 h5' = el' "h5"
 
-h6_ :: El_
+h6_ :: forall event. Array (Attribute event) -> Html event -> Html event
 h6_ = el_ "h6"
 
-h6 :: El
+h6 :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 h6 = el "h6"
 
-h6' :: El'
+h6' :: forall event. Array (Html event) -> Html event
 h6' = el' "h6"
 
-head_ :: El_
+head_ :: forall event. Array (Attribute event) -> Html event -> Html event
 head_ = el_ "head"
 
-head :: El
+head :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 head = el "head"
 
-head' :: El'
+head' :: forall event. Array (Html event) -> Html event
 head' = el' "head"
 
-header_ :: El_
+header_ :: forall event. Array (Attribute event) -> Html event -> Html event
 header_ = el_ "header"
 
-header :: El
+header :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 header = el "header"
 
-header' :: El'
+header' :: forall event. Array (Html event) -> Html event
 header' = el' "header"
 
-hgroup_ :: El_
+hgroup_ :: forall event. Array (Attribute event) -> Html event -> Html event
 hgroup_ = el_ "hgroup"
 
-hgroup :: El
+hgroup :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 hgroup = el "hgroup"
 
-hgroup' :: El'
+hgroup' :: forall event. Array (Html event) -> Html event
 hgroup' = el' "hgroup"
 
-hr_ :: El_
+hr_ :: forall event. Array (Attribute event) -> Html event -> Html event
 hr_ = el_ "hr"
 
-hr :: El
+hr :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 hr = el "hr"
 
-hr' :: El'
+hr' :: forall event. Array (Html event) -> Html event
 hr' = el' "hr"
 
-html_ :: El_
+html_ :: forall event. Array (Attribute event) -> Html event -> Html event
 html_ = el_ "html"
 
-html :: El
+html :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 html = el "html"
 
-html' :: El'
+html' :: forall event. Array (Html event) -> Html event
 html' = el' "html"
 
-i_ :: El_
+i_ :: forall event. Array (Attribute event) -> Html event -> Html event
 i_ = el_ "i"
 
-i :: El
+i :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 i = el "i"
 
-i' :: El'
+i' :: forall event. Array (Html event) -> Html event
 i' = el' "i"
 
-iframe_ :: El_
+iframe_ :: forall event. Array (Attribute event) -> Html event -> Html event
 iframe_ = el_ "iframe"
 
-iframe :: El
+iframe :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 iframe = el "iframe"
 
-iframe' :: El'
+iframe' :: forall event. Array (Html event) -> Html event
 iframe' = el' "iframe"
 
-ins_ :: El_
+ins_ :: forall event. Array (Attribute event) -> Html event -> Html event
 ins_ = el_ "ins"
 
-ins :: El
+ins :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 ins = el "ins"
 
-ins' :: El'
+ins' :: forall event. Array (Html event) -> Html event
 ins' = el' "ins"
 
-kbd_ :: El_
+kbd_ :: forall event. Array (Attribute event) -> Html event -> Html event
 kbd_ = el_ "kbd"
 
-kbd :: El
+kbd :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 kbd = el "kbd"
 
-kbd' :: El'
+kbd' :: forall event. Array (Html event) -> Html event
 kbd' = el' "kbd"
 
-label_ :: El_
+label_ :: forall event. Array (Attribute event) -> Html event -> Html event
 label_ = el_ "label"
 
-label :: El
+label :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 label = el "label"
 
-label' :: El'
+label' :: forall event. Array (Html event) -> Html event
 label' = el' "label"
 
-legend_ :: El_
+legend_ :: forall event. Array (Attribute event) -> Html event -> Html event
 legend_ = el_ "legend"
 
-legend :: El
+legend :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 legend = el "legend"
 
-legend' :: El'
+legend' :: forall event. Array (Html event) -> Html event
 legend' = el' "legend"
 
-li_ :: El_
+li_ :: forall event. Array (Attribute event) -> Html event -> Html event
 li_ = el_ "li"
 
-li :: El
+li :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 li = el "li"
 
-li' :: El'
+li' :: forall event. Array (Html event) -> Html event
 li' = el' "li"
 
-link_ :: El_
+link_ :: forall event. Array (Attribute event) -> Html event -> Html event
 link_ = el_ "link"
 
-link :: El
+link :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 link = el "link"
 
-link' :: El'
+link' :: forall event. Array (Html event) -> Html event
 link' = el' "link"
 
-main_ :: El_
+main_ :: forall event. Array (Attribute event) -> Html event -> Html event
 main_ = el_ "main"
 
-main :: El
+main :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 main = el "main"
 
-main' :: El'
+main' :: forall event. Array (Html event) -> Html event
 main' = el' "main"
 
-map_ :: El
+map_ :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 map_ = el "map"
 
-map' :: El'
+map' :: forall event. Array (Html event) -> Html event
 map' = el' "map"
 
-mark_ :: El_
+mark_ :: forall event. Array (Attribute event) -> Html event -> Html event
 mark_ = el_ "mark"
 
-mark :: El
+mark :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 mark = el "mark"
 
-mark' :: El'
+mark' :: forall event. Array (Html event) -> Html event
 mark' = el' "mark"
 
-math_ :: El_
+math_ :: forall event. Array (Attribute event) -> Html event -> Html event
 math_ = el_ "math"
 
-math :: El
+math :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 math = el "math"
 
-math' :: El'
+math' :: forall event. Array (Html event) -> Html event
 math' = el' "math"
 
-menu_ :: El_
+menu_ :: forall event. Array (Attribute event) -> Html event -> Html event
 menu_ = el_ "menu"
 
-menu :: El
+menu :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 menu = el "menu"
 
-menu' :: El'
+menu' :: forall event. Array (Html event) -> Html event
 menu' = el' "menu"
 
-menuitem_ :: El_
+menuitem_ :: forall event. Array (Attribute event) -> Html event -> Html event
 menuitem_ = el_ "menuitem"
 
-menuitem :: El
+menuitem :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 menuitem = el "menuitem"
 
-menuitem' :: El'
+menuitem' :: forall event. Array (Html event) -> Html event
 menuitem' = el' "menuitem"
 
-meta_ :: El_
+meta_ :: forall event. Array (Attribute event) -> Html event -> Html event
 meta_ = el_ "meta"
 
-meta :: El
+meta :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 meta = el "meta"
 
-meta' :: El'
+meta' :: forall event. Array (Html event) -> Html event
 meta' = el' "meta"
 
-meter_ :: El_
+meter_ :: forall event. Array (Attribute event) -> Html event -> Html event
 meter_ = el_ "meter"
 
-meter :: El
+meter :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 meter = el "meter"
 
-meter' :: El'
+meter' :: forall event. Array (Html event) -> Html event
 meter' = el' "meter"
 
-nav_ :: El_
+nav_ :: forall event. Array (Attribute event) -> Html event -> Html event
 nav_ = el_ "nav"
 
-nav :: El
+nav :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 nav = el "nav"
 
-nav' :: El'
+nav' :: forall event. Array (Html event) -> Html event
 nav' = el' "nav"
 
-noscript_ :: El_
+noscript_ :: forall event. Array (Attribute event) -> Html event -> Html event
 noscript_ = el_ "noscript"
 
-noscript :: El
+noscript :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 noscript = el "noscript"
 
-noscript' :: El'
+noscript' :: forall event. Array (Html event) -> Html event
 noscript' = el' "noscript"
 
-object_ :: El_
+object_ :: forall event. Array (Attribute event) -> Html event -> Html event
 object_ = el_ "object"
 
-object :: El
+object :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 object = el "object"
 
-object' :: El'
+object' :: forall event. Array (Html event) -> Html event
 object' = el' "object"
 
-ol_ :: El_
+ol_ :: forall event. Array (Attribute event) -> Html event -> Html event
 ol_ = el_ "ol"
 
-ol :: El
+ol :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 ol = el "ol"
 
-ol' :: El'
+ol' :: forall event. Array (Html event) -> Html event
 ol' = el' "ol"
 
-optgroup_ :: El_
+optgroup_ :: forall event. Array (Attribute event) -> Html event -> Html event
 optgroup_ = el_ "optgroup"
 
-optgroup :: El
+optgroup :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 optgroup = el "optgroup"
 
-optgroup' :: El'
+optgroup' :: forall event. Array (Html event) -> Html event
 optgroup' = el' "optgroup"
 
-option_ :: El_
+option_ :: forall event. Array (Attribute event) -> Html event -> Html event
 option_ = el_ "option"
 
-option :: El
+option :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 option = el "option"
 
-option' :: El'
+option' :: forall event. Array (Html event) -> Html event
 option' = el' "option"
 
-output_ :: El_
+output_ :: forall event. Array (Attribute event) -> Html event -> Html event
 output_ = el_ "output"
 
-output :: El
+output :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 output = el "output"
 
-output' :: El'
+output' :: forall event. Array (Html event) -> Html event
 output' = el' "output"
 
-p_ :: El_
+p_ :: forall event. Array (Attribute event) -> Html event -> Html event
 p_ = el_ "p"
 
-p :: El
+p :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 p = el "p"
 
-p' :: El'
+p' :: forall event. Array (Html event) -> Html event
 p' = el' "p"
 
-param_ :: El_
+param_ :: forall event. Array (Attribute event) -> Html event -> Html event
 param_ = el_ "param"
 
-param :: El
+param :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 param = el "param"
 
-param' :: El'
+param' :: forall event. Array (Html event) -> Html event
 param' = el' "param"
 
-picture_ :: El_
+picture_ :: forall event. Array (Attribute event) -> Html event -> Html event
 picture_ = el_ "picture"
 
-picture :: El
+picture :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 picture = el "picture"
 
-picture' :: El'
+picture' :: forall event. Array (Html event) -> Html event
 picture' = el' "picture"
 
-pre_ :: El_
+pre_ :: forall event. Array (Attribute event) -> Html event -> Html event
 pre_ = el_ "pre"
 
-pre :: El
+pre :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 pre = el "pre"
 
-pre' :: El'
+pre' :: forall event. Array (Html event) -> Html event
 pre' = el' "pre"
 
-progress_ :: El_
+progress_ :: forall event. Array (Attribute event) -> Html event -> Html event
 progress_ = el_ "progress"
 
-progress :: El
+progress :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 progress = el "progress"
 
-progress' :: El'
+progress' :: forall event. Array (Html event) -> Html event
 progress' = el' "progress"
 
-q_ :: El_
+q_ :: forall event. Array (Attribute event) -> Html event -> Html event
 q_ = el_ "q"
 
-q :: El
+q :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 q = el "q"
 
-q' :: El'
+q' :: forall event. Array (Html event) -> Html event
 q' = el' "q"
 
-rb_ :: El_
+rb_ :: forall event. Array (Attribute event) -> Html event -> Html event
 rb_ = el_ "rb"
 
-rb :: El
+rb :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 rb = el "rb"
 
-rb' :: El'
+rb' :: forall event. Array (Html event) -> Html event
 rb' = el' "rb"
 
-rp_ :: El_
+rp_ :: forall event. Array (Attribute event) -> Html event -> Html event
 rp_ = el_ "rp"
 
-rp :: El
+rp :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 rp = el "rp"
 
-rp' :: El'
+rp' :: forall event. Array (Html event) -> Html event
 rp' = el' "rp"
 
-rt_ :: El_
+rt_ :: forall event. Array (Attribute event) -> Html event -> Html event
 rt_ = el_ "rt"
 
-rt :: El
+rt :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 rt = el "rt"
 
-rt' :: El'
+rt' :: forall event. Array (Html event) -> Html event
 rt' = el' "rt"
 
-rtc_ :: El_
+rtc_ :: forall event. Array (Attribute event) -> Html event -> Html event
 rtc_ = el_ "rtc"
 
-rtc :: El
+rtc :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 rtc = el "rtc"
 
-rtc' :: El'
+rtc' :: forall event. Array (Html event) -> Html event
 rtc' = el' "rtc"
 
-ruby_ :: El_
+ruby_ :: forall event. Array (Attribute event) -> Html event -> Html event
 ruby_ = el_ "ruby"
 
-ruby :: El
+ruby :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 ruby = el "ruby"
 
-ruby' :: El'
+ruby' :: forall event. Array (Html event) -> Html event
 ruby' = el' "ruby"
 
-s_ :: El_
+s_ :: forall event. Array (Attribute event) -> Html event -> Html event
 s_ = el_ "s"
 
-s :: El
+s :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 s = el "s"
 
-s' :: El'
+s' :: forall event. Array (Html event) -> Html event
 s' = el' "s"
 
-samp_ :: El_
+samp_ :: forall event. Array (Attribute event) -> Html event -> Html event
 samp_ = el_ "samp"
 
-samp :: El
+samp :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 samp = el "samp"
 
-samp' :: El'
+samp' :: forall event. Array (Html event) -> Html event
 samp' = el' "samp"
 
-script_ :: El_
+script_ :: forall event. Array (Attribute event) -> Html event -> Html event
 script_ = el_ "script"
 
-script :: El
+script :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 script = el "script"
 
-script' :: El'
+script' :: forall event. Array (Html event) -> Html event
 script' = el' "script"
 
-section_ :: El_
+section_ :: forall event. Array (Attribute event) -> Html event -> Html event
 section_ = el_ "section"
 
-section :: El
+section :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 section = el "section"
 
-section' :: El'
+section' :: forall event. Array (Html event) -> Html event
 section' = el' "section"
 
-select_ :: El_
+select_ :: forall event. Array (Attribute event) -> Html event -> Html event
 select_ = el_ "select"
 
-select :: El
+select :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 select = el "select"
 
-select' :: El'
+select' :: forall event. Array (Html event) -> Html event
 select' = el' "select"
 
-slot_ :: El_
+slot_ :: forall event. Array (Attribute event) -> Html event -> Html event
 slot_ = el_ "slot"
 
-slot :: El
+slot :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 slot = el "slot"
 
-slot' :: El'
+slot' :: forall event. Array (Html event) -> Html event
 slot' = el' "slot"
 
-small_ :: El_
+small_ :: forall event. Array (Attribute event) -> Html event -> Html event
 small_ = el_ "small"
 
-small :: El
+small :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 small = el "small"
 
-small' :: El'
+small' :: forall event. Array (Html event) -> Html event
 small' = el' "small"
 
-source_ :: El_
+source_ :: forall event. Array (Attribute event) -> Html event -> Html event
 source_ = el_ "source"
 
-source :: El
+source :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 source = el "source"
 
-source' :: El'
+source' :: forall event. Array (Html event) -> Html event
 source' = el' "source"
 
-span_ :: El_
+span_ :: forall event. Array (Attribute event) -> Html event -> Html event
 span_ = el_ "span"
 
-span :: El
+span :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 span = el "span"
 
-span' :: El'
+span' :: forall event. Array (Html event) -> Html event
 span' = el' "span"
 
-strong_ :: El_
+strong_ :: forall event. Array (Attribute event) -> Html event -> Html event
 strong_ = el_ "strong"
 
-strong :: El
+strong :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 strong = el "strong"
 
-strong' :: El'
+strong' :: forall event. Array (Html event) -> Html event
 strong' = el' "strong"
 
-style_ :: El_
+style_ :: forall event. Array (Attribute event) -> Html event -> Html event
 style_ = el_ "style"
 
-style :: El
+style :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 style = el "style"
 
-style' :: El'
+style' :: forall event. Array (Html event) -> Html event
 style' = el' "style"
 
-sub_ :: El_
+sub_ :: forall event. Array (Attribute event) -> Html event -> Html event
 sub_ = el_ "sub"
 
-sub :: El
+sub :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 sub = el "sub"
 
-sub' :: El'
+sub' :: forall event. Array (Html event) -> Html event
 sub' = el' "sub"
 
-summary_ :: El_
+summary_ :: forall event. Array (Attribute event) -> Html event -> Html event
 summary_ = el_ "summary"
 
-summary :: El
+summary :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 summary = el "summary"
 
-summary' :: El'
+summary' :: forall event. Array (Html event) -> Html event
 summary' = el' "summary"
 
-sup_ :: El_
+sup_ :: forall event. Array (Attribute event) -> Html event -> Html event
 sup_ = el_ "sup"
 
-sup :: El
+sup :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 sup = el "sup"
 
-sup' :: El'
+sup' :: forall event. Array (Html event) -> Html event
 sup' = el' "sup"
 
-svg_ :: El_
+svg_ :: forall event. Array (Attribute event) -> Html event -> Html event
 svg_ = el_ "svg"
 
-svg :: El
+svg :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 svg = el "svg"
 
-svg' :: El'
+svg' :: forall event. Array (Html event) -> Html event
 svg' = el' "svg"
 
-table_ :: El_
+table_ :: forall event. Array (Attribute event) -> Html event -> Html event
 table_ = el_ "table"
 
-table :: El
+table :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 table = el "table"
 
-table' :: El'
+table' :: forall event. Array (Html event) -> Html event
 table' = el' "table"
 
-tbody_ :: El_
+tbody_ :: forall event. Array (Attribute event) -> Html event -> Html event
 tbody_ = el_ "tbody"
 
-tbody :: El
+tbody :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 tbody = el "tbody"
 
-tbody' :: El'
+tbody' :: forall event. Array (Html event) -> Html event
 tbody' = el' "tbody"
 
-td_ :: El_
+td_ :: forall event. Array (Attribute event) -> Html event -> Html event
 td_ = el_ "td"
 
-td :: El
+td :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 td = el "td"
 
-td' :: El'
+td' :: forall event. Array (Html event) -> Html event
 td' = el' "td"
 
-template_ :: El_
+template_ :: forall event. Array (Attribute event) -> Html event -> Html event
 template_ = el_ "template"
 
-template :: El
+template :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 template = el "template"
 
-template' :: El'
+template' :: forall event. Array (Html event) -> Html event
 template' = el' "template"
 
-textarea_ :: El_
+textarea_ :: forall event. Array (Attribute event) -> Html event -> Html event
 textarea_ = el_ "textarea"
 
-textarea :: El
+textarea :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 textarea = el "textarea"
 
-textarea' :: El'
+textarea' :: forall event. Array (Html event) -> Html event
 textarea' = el' "textarea"
 
-tfoot_ :: El_
+tfoot_ :: forall event. Array (Attribute event) -> Html event -> Html event
 tfoot_ = el_ "tfoot"
 
-tfoot :: El
+tfoot :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 tfoot = el "tfoot"
 
-tfoot' :: El'
+tfoot' :: forall event. Array (Html event) -> Html event
 tfoot' = el' "tfoot"
 
-th_ :: El_
+th_ :: forall event. Array (Attribute event) -> Html event -> Html event
 th_ = el_ "th"
 
-th :: El
+th :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 th = el "th"
 
-th' :: El'
+th' :: forall event. Array (Html event) -> Html event
 th' = el' "th"
 
-thead_ :: El_
+thead_ :: forall event. Array (Attribute event) -> Html event -> Html event
 thead_ = el_ "thead"
 
-thead :: El
+thead :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 thead = el "thead"
 
-thead' :: El'
+thead' :: forall event. Array (Html event) -> Html event
 thead' = el' "thead"
 
-time_ :: El_
+time_ :: forall event. Array (Attribute event) -> Html event -> Html event
 time_ = el_ "time"
 
-time :: El
+time :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 time = el "time"
 
-time' :: El'
+time' :: forall event. Array (Html event) -> Html event
 time' = el' "time"
 
-title_ :: El_
+title_ :: forall event. Array (Attribute event) -> Html event -> Html event
 title_ = el_ "title"
 
-title :: El
+title :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 title = el "title"
 
-title' :: El'
+title' :: forall event. Array (Html event) -> Html event
 title' = el' "title"
 
-tr_ :: El_
+tr_ :: forall event. Array (Attribute event) -> Html event -> Html event
 tr_ = el_ "tr"
 
-tr :: El
+tr :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 tr = el "tr"
 
-tr' :: El'
+tr' :: forall event. Array (Html event) -> Html event
 tr' = el' "tr"
 
-track_ :: El_
+track_ :: forall event. Array (Attribute event) -> Html event -> Html event
 track_ = el_ "track"
 
-track :: El
+track :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 track = el "track"
 
-track' :: El'
+track' :: forall event. Array (Html event) -> Html event
 track' = el' "track"
 
-u_ :: El_
+u_ :: forall event. Array (Attribute event) -> Html event -> Html event
 u_ = el_ "u"
 
-u :: El
+u :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 u = el "u"
 
-u' :: El'
+u' :: forall event. Array (Html event) -> Html event
 u' = el' "u"
 
-ul_ :: El_
+ul_ :: forall event. Array (Attribute event) -> Html event -> Html event
 ul_ = el_ "ul"
 
-ul :: El
+ul :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 ul = el "ul"
 
-ul' :: El'
+ul' :: forall event. Array (Html event) -> Html event
 ul' = el' "ul"
 
-var_ :: El_
+var_ :: forall event. Array (Attribute event) -> Html event -> Html event
 var_ = el_ "var"
 
-var :: El
+var :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 var = el "var"
 
-var' :: El'
+var' :: forall event. Array (Html event) -> Html event
 var' = el' "var"
 
-video_ :: El_
+video_ :: forall event. Array (Attribute event) -> Html event -> Html event
 video_ = el_ "video"
 
-video :: El
+video :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 video = el "video"
 
-video' :: El'
+video' :: forall event. Array (Html event) -> Html event
 video' = el' "video"
 
-wbr_ :: El_
+wbr_ :: forall event. Array (Attribute event) -> Html event -> Html event
 wbr_ = el_ "wbr"
 
-wbr :: El
+wbr :: forall event. Array (Attribute event) -> Array (Html event) -> Html event
 wbr = el "wbr"
 
-wbr' :: El'
+wbr' :: forall event. Array (Html event) -> Html event
 wbr' = el' "wbr"
 
 img :: ElAttrs
