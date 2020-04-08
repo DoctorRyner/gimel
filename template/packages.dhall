@@ -7,7 +7,7 @@ let additions =
     { gimel =
         { dependencies = [ "prelude" ]
         , repo         = "https://github.com/DoctorRyner/gimel"
-        , version      = "17fb7db638cbfd912a81a927d043e8f617dbf69b"
+        , version      = "c65d6245d204670dbd2cafe144ec4a3b92c60de4"
         }
     , react-mui =
         { dependencies = [ "tscompat" ]
