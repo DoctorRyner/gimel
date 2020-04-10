@@ -1,5 +1,5 @@
 # gimel
 
-## How to run and test?
+## How to run the examples?
 
-Just type `make` in the project root
+Just enter the examples folder and type `make`
