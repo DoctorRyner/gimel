@@ -17,10 +17,10 @@ type El'     = forall event. Array (Html event) -> Html event
 type ElAttrs = forall event. Array (Attribute event) -> Html event
 
 data Html event
-  = Html ReactEl (Array (Attribute event)) (Array (Html event))
-  | Text String
-  | Fragment (Array (Html event))
-  | RawReact ReactElement
+    = Html ReactEl (Array (Attribute event)) (Array (Html event))
+    | Text String
+    | Fragment (Array (Html event))
+    | RawReact ReactElement
 
 instance semigroupHtml :: Semigroup (Html event) where
   append x y = Fragment [x, y]

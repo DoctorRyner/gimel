@@ -12,8 +12,8 @@ targetOf :: forall a b. a -> b
 targetOf e = (unsafeCoerce e).target
 
 data Attribute event
-  = Attribute Props
-  | ReactEvent String (SyntheticEvent -> event)
+    = Attribute Props
+    | ReactEvent String (SyntheticEvent -> event)
 
 on :: forall event. String -> event -> Attribute event
 on eventName = ReactEvent ("on" <> eventName) <<< const
@@ -28,8 +28,8 @@ infix 4 attribute as =:
 
 toReactProp :: forall event. EventRunner event -> Attribute event -> Props
 toReactProp runEvent = case _ of
-  Attribute prop             -> prop
-  ReactEvent eventName event -> unsafeMkProps eventName $ mkEffectFn1 (runEvent <<< event)
+    Attribute prop             -> prop
+    ReactEvent eventName event -> unsafeMkProps eventName $ mkEffectFn1 (runEvent <<< event)
 
 -- Events
 

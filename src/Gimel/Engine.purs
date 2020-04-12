@@ -53,13 +53,13 @@ classFromApp app = React.component "Gimel" constructor
 
 runIn :: forall model event. String -> Application model event -> Effect Unit
 runIn nodeId app = do
-  win  <- DOM.window
-  node <- DOM.toNonElementParentNode <$> DOM.document win
+    win  <- DOM.window
+    node <- DOM.toNonElementParentNode <$> DOM.document win
 
-  DOM.getElementById nodeId node >>=
-    case _ of
-      Just root -> render (createElement (classFromApp app) {} []) root *> mempty
-      Nothing   -> errorShow $ "Can't find an element with an id " <> nodeId
+    DOM.getElementById nodeId node >>=
+        case _ of
+        Just root -> render (createElement (classFromApp app) {} []) root *> mempty
+        Nothing   -> errorShow $ "Can't find an element with an id " <> nodeId
 
 run :: forall model event. Application model event -> Effect Unit
 run = runIn "gimel"

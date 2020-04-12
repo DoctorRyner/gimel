@@ -34,10 +34,10 @@ withEffects :: forall model event. model -> Array (Effect event) -> Update model
 withEffects model affs = Update { model, affs: map liftEffect affs }
 
 class Wait time where
-  wait :: time -> Aff Unit
+    wait :: time -> Aff Unit
 
 instance waitNumber :: Wait Number where
-  wait sec = delay $ Milliseconds $ sec * 1000.0
+    wait sec = delay $ Milliseconds $ sec * 1000.0
 
 instance waitInt :: Wait Int where
-  wait sec = delay $ Milliseconds $ toNumber $ sec * 1000
+    wait sec = delay $ Milliseconds $ toNumber $ sec * 1000
