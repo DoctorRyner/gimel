@@ -1,0 +1,6 @@
+.cache
+.spago
+.psc-ide-port
+dist
+node_modules
+output
