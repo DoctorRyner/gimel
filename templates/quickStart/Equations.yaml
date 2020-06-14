@@ -1,5 +1,0 @@
-default: sae --async dev watch
-
-dev: npm run dev
-watch: npm run watch
-build: spago build
