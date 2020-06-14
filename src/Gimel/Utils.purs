@@ -2,42 +2,35 @@ module Gimel.Utils where
 
 import Prelude
 
-import Data.Int (toNumber)
 import Effect (Effect)
 import Effect.Aff (Aff, Milliseconds(..), delay)
 import Effect.Class (liftEffect)
+import Data.Maybe (Maybe(Just))
 import Gimel.Types (UpdateM(..), Update)
 
-infix 4 withEvent   as <<
-infix 4 withEvents  as <:
-infix 4 withAff     as <~
-infix 4 withAffs    as <~:
-infix 4 withEffect  as <|
-infix 4 withEffects as <|:
-
 withEvent :: forall model event. model -> event -> Update model event
-withEvent model event = Update { model, affs: [pure event] }
+withEvent model event = withEvents model [event]
 
 withEvents :: forall model event. model -> Array event -> Update model event
-withEvents model affs = Update { model, affs: map pure affs }
+withEvents model affs = Update {model, affs: map (pure <<< Just) affs}
 
 withAff :: forall model event. model -> Aff event -> Update model event
-withAff model aff = Update { model, affs: [aff] }
+withAff model aff = withAffs model [aff]
 
 withAffs :: forall model event. model -> Array (Aff event) -> Update model event
-withAffs model affs = Update { model, affs }
+withAffs model = withMaybeAffs model <<< map (map Just)
+
+withMaybeAffs :: forall model event. model -> Array (Aff (Maybe event)) -> Update model event
+withMaybeAffs model affs = Update {model, affs}
 
 withEffect :: forall model event. model -> Effect event -> Update model event
-withEffect model aff = Update { model, affs: [liftEffect aff] }
+withEffect model aff = Update { model, affs: [Just <$> liftEffect aff] }
 
 withEffects :: forall model event. model -> Array (Effect event) -> Update model event
-withEffects model affs = Update { model, affs: map liftEffect affs }
+withEffects model = withMaybeEffects model <<< map (map Just)
 
-class Wait time where
-    wait :: time -> Aff Unit
+withMaybeEffects :: forall model event. model -> Array (Effect (Maybe event)) -> Update model event
+withMaybeEffects model = withMaybeAffs model <<< map liftEffect
 
-instance waitNumber :: Wait Number where
-    wait sec = delay $ Milliseconds $ sec * 1000.0
-
-instance waitInt :: Wait Int where
-    wait sec = delay $ Milliseconds $ toNumber $ sec * 1000
+wait :: Number -> Aff Unit
+wait sec = delay $ Milliseconds $ sec * 1000.0

@@ -8,18 +8,15 @@ import React.DOM.Props (Props, unsafeMkProps)
 import React.SyntheticEvent (SyntheticEvent)
 import Unsafe.Coerce (unsafeCoerce)
 
-targetOf :: forall a b. a -> b
-targetOf e = (unsafeCoerce e).target
-
 data Attribute event
-    = Attribute Props
-    | ReactEvent String (SyntheticEvent -> event)
+  = Attribute Props
+  | AttributeEvent String (SyntheticEvent -> event)
 
 on :: forall event. String -> event -> Attribute event
-on eventName = ReactEvent ("on" <> eventName) <<< const
+on eventName = AttributeEvent ("on" <> eventName) <<< const
 
 on_ :: forall event. String -> (SyntheticEvent -> event) -> Attribute event
-on_ eventName f = ReactEvent ("on" <> eventName) f
+on_ eventName f = AttributeEvent ("on" <> eventName) f
 
 attribute :: forall event propValue. String -> propValue -> Attribute event
 attribute k v = Attribute $ unsafeMkProps k v
@@ -27,11 +24,14 @@ attribute k v = Attribute $ unsafeMkProps k v
 infix 4 attribute as =:
 
 toReactProp :: forall event. EventRunner event -> Attribute event -> Props
-toReactProp runEvent = case _ of
-    Attribute prop             -> prop
-    ReactEvent eventName event -> unsafeMkProps eventName $ mkEffectFn1 (runEvent <<< event)
+toReactProp _ (Attribute prop) = prop
+toReactProp runEvent (AttributeEvent eventName event) = 
+  unsafeMkProps eventName $ mkEffectFn1 (runEvent <<< event)
 
 -- Events
+
+targetOf :: forall a b. a -> b
+targetOf e = (unsafeCoerce e).target
 
 onClick :: forall event. event -> Attribute event
 onClick = on "Click"

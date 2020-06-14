@@ -33,3 +33,7 @@ Contains basic project structure to develop in a standard way
 ### Quick Start
 
 Contains some basic examples to play around with (we also show how to use react widgets like material-ui)
+
+## TODO
+[+] Add optional affs
+[ ] Implement Sub

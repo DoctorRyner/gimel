@@ -10,12 +10,6 @@ import React.DOM (IsDynamic(..), mkDOM)
 import React.DOM (text) as DOM
 import React.DOM.Props (Props, unsafeFromPropsArray)
 
-type ReactEl = Array Props -> Array ReactElement -> ReactElement
-type El      = forall event. Array (Attribute event) -> Array (Html event) -> Html event
-type El_     = forall event. Array (Attribute event) -> Html event -> Html event
-type El'     = forall event. Array (Html event) -> Html event
-type ElAttrs = forall event. Array (Attribute event) -> Html event
-
 data Html event
     = Html ReactEl (Array (Attribute event)) (Array (Html event))
     | Text String
@@ -25,8 +19,8 @@ data Html event
 instance semigroupHtml :: Semigroup (Html event) where
   append x y = Fragment [x, y]
 
-instance foldHtml :: Monoid (Html event) where
-  mempty = text ""
+instance monoidHtml :: Monoid (Html event) where
+  mempty = Fragment []
 
 text :: forall event. String -> Html event
 text = Text
@@ -58,13 +52,21 @@ react :: forall props event
       -> Array (Html event)
       -> Html event
 react class_ = Html (unsafeCreateElement class_ <<< unsafeFromPropsArray)
-
+      
 toReactHtml :: forall event. EventRunner event -> Html event -> ReactElement
 toReactHtml runEvent = case _ of
-  Html element attrs childs -> element (map (toReactProp runEvent) attrs) (map (toReactHtml runEvent) childs)
   Text str                  -> DOM.text str
   RawReact element          -> element
   Fragment htmls            -> fold $ map (toReactHtml runEvent) htmls
+  Html element attrs childs -> element (map (toReactProp runEvent) attrs)
+                                       (map (toReactHtml runEvent) childs)
+
+-- Shortcut types
+type ReactEl = Array Props -> Array ReactElement -> ReactElement
+type El      = forall event. Array (Attribute event) -> Array (Html event) -> Html event
+type El_     = forall event. Array (Attribute event) -> Html event -> Html event
+type El'     = forall event. Array (Html event) -> Html event
+type ElAttrs = forall event. Array (Attribute event) -> Html event
 
 -- Tags
 
