@@ -3,7 +3,7 @@ module Gimel.Engine where
 import Prelude
 
 import Data.Either (either)
-import Data.Foldable (traverse_)
+import Data.Foldable (fold, traverse_)
 import Data.Maybe (Maybe(..), maybe)
 import Effect (Effect)
 import Effect.Aff (runAff_, Aff)
@@ -39,7 +39,7 @@ classFromApp app = React.component "Gimel" constructor
         runAffs next.affs
 
         -- Perform subscriptions
-        -- fold $  $ app.subs next.model
+        fold $ (\f -> f runEvent) <$> app.subs next.model
 
       runMaybeEvent :: Maybe event -> Effect Unit
       runMaybeEvent x = maybe mempty runEvent x
