@@ -3,8 +3,8 @@ module Gimel.Html where
 import Prelude
 
 import Data.Foldable (fold)
+import Effect (Effect)
 import Gimel.Attributes (Attribute, toReactProp)
-import Gimel.EventRunner (EventRunner)
 import React (Children, ReactClass, ReactElement, unsafeCreateElement)
 import React.DOM (IsDynamic(..), mkDOM)
 import React.DOM (text) as DOM
@@ -53,7 +53,7 @@ react :: forall props event
       -> Html event
 react class_ = Html (unsafeCreateElement class_ <<< unsafeFromPropsArray)
       
-toReactHtml :: forall event. EventRunner event -> Html event -> ReactElement
+toReactHtml :: forall event. (event -> Effect Unit) -> Html event -> ReactElement
 toReactHtml runEvent = case _ of
   Text str                  -> DOM.text str
   RawReact element          -> element

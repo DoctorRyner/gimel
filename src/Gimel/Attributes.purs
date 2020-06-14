@@ -2,8 +2,8 @@ module Gimel.Attributes where
 
 import Prelude
 
+import Effect (Effect)
 import Effect.Uncurried (mkEffectFn1)
-import Gimel.EventRunner (EventRunner)
 import React.DOM.Props (Props, unsafeMkProps)
 import React.SyntheticEvent (SyntheticEvent)
 import Unsafe.Coerce (unsafeCoerce)
@@ -23,7 +23,7 @@ attribute k v = Attribute $ unsafeMkProps k v
 
 infix 4 attribute as =:
 
-toReactProp :: forall event. EventRunner event -> Attribute event -> Props
+toReactProp :: forall event. (event -> Effect Unit) -> Attribute event -> Props
 toReactProp _ (Attribute prop) = prop
 toReactProp runEvent (AttributeEvent eventName event) = 
   unsafeMkProps eventName $ mkEffectFn1 (runEvent <<< event)

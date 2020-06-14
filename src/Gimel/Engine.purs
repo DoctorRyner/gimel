@@ -3,7 +3,7 @@ module Gimel.Engine where
 import Prelude
 
 import Data.Either (either)
-import Data.Foldable (fold, traverse_)
+import Data.Foldable (traverse_)
 import Data.Maybe (Maybe(..), maybe)
 import Effect (Effect)
 import Effect.Aff (runAff_, Aff)
@@ -39,7 +39,7 @@ classFromApp app = React.component "Gimel" constructor
         runAffs next.affs
 
         -- Perform subscriptions
-        fold $ app.subs next.model runEvent
+        -- fold $  $ app.subs next.model
 
       runMaybeEvent :: Maybe event -> Effect Unit
       runMaybeEvent x = maybe mempty runEvent x
@@ -61,10 +61,9 @@ run = runOn "gimel"
 
 runOn :: forall model event. String -> Application model event -> Effect Unit
 runOn nodeId app = do
-  win  <- DOM.window
-  node <- DOM.toNonElementParentNode <$> DOM.document win
+  win       <- DOM.window
+  maybeRoot <- DOM.getElementById nodeId =<< DOM.toNonElementParentNode <$> DOM.document win
 
-  DOM.getElementById nodeId node >>=
-    case _ of
-      Just root -> render (createElement (classFromApp app) {} []) root *> mempty
-      Nothing   -> errorShow $ "Can't find an element with an id " <> nodeId
+  case maybeRoot of
+    Just root -> render (createElement (classFromApp app) {} []) root *> mempty
+    Nothing   -> errorShow $ "Can't find an element with an id " <> nodeId

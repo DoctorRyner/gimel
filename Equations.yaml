@@ -1,3 +1,0 @@
-default: npm run watch
-
-b: spago build

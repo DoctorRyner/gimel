@@ -7,8 +7,8 @@ import Effect (Effect)
 import Effect.Console (logShow)
 import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
-import Gimel.EventRunner (EventRunner)
 import Gimel.Html (Html, button, text, textS)
+import Gimel.Sub (Subs)
 import Gimel.Types (Update)
 import Gimel.Utils (wait, withAff, withEvent, withEvents)
 
@@ -42,8 +42,8 @@ update model = case _ of
                                                                         , IncrementCounterEverySecond
                                                                         ]
 
-subs :: Model -> EventRunner Event -> Array (Effect Unit)
-subs model runEvent = [logShow model]
+subs :: Model -> Subs Event
+subs model = [\_ -> logShow model]
 
 main :: Effect Unit
 main = run {init, view, update, subs}

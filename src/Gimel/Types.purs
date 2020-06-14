@@ -2,17 +2,16 @@ module Gimel.Types where
 
 import Prelude
 
-import Effect (Effect)
 import Effect.Aff (Aff)
-import Gimel.EventRunner (EventRunner)
 import Gimel.Html (Html)
 import Data.Maybe (Maybe)
+import Gimel.Sub (Subs)
 
 type Application model event =
   { init   :: Update model event
   , view   :: model -> Html event
   , update :: model -> event -> Update model event
-  , subs   :: model -> EventRunner event -> Array (Effect Unit)
+  , subs   :: model -> Subs event
   }
 
 type Update model event = UpdateM event model
