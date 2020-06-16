@@ -3,6 +3,7 @@
   [ "aff"
   , "console"
   , "effect"
+  , "ordered-collections"
   , "psci-support"
   , "react"
   , "react-dom"

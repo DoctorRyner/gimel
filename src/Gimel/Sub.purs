@@ -3,10 +3,45 @@ module Gimel.Sub where
 import Prelude
 
 import Effect (Effect)
+import Effect.Class.Console (logShow)
+import Web.Event.Event (EventType(..))
+import Web.Event.EventTarget (addEventListener, eventListener, removeEventListener)
+import Web.HTML (window)
+import Web.HTML.Window (innerHeight, innerWidth, toEventTarget)
 
 type Subs event = Array (Sub event)
-type Sub  event = (event -> Effect Unit) -> Effect Unit
 
-mapSub :: forall eventA eventB. (eventA -> eventB) -> Sub eventA -> Sub eventB
-mapSub f sub = \runB -> let runA = runB <<< f
-                         in sub runA
+type Complex event = { id     :: String
+                     , attach :: (event -> Effect Unit) -> Effect (Effect Unit)
+                     }
+
+type Simple event = ((event -> Effect Unit) -> Effect Unit)
+
+data Sub event
+  = Sub (Complex event)
+  | SubSimple (Simple event)
+
+resizeWindow :: forall event. (Int -> Int -> event) -> Sub event
+resizeWindow resizeEvent = Sub
+  { id    : "windowSize"
+  , attach: \runEvent -> do
+      win      <- window
+      listener <-
+        eventListener \_ -> do
+          height <- innerHeight win
+          width  <- innerWidth win
+
+          runEvent $ resizeEvent height width
+
+      addEventListener (EventType "resize") listener false $ toEventTarget win
+
+      pure do
+        removeEventListener
+          (EventType "resize")
+          listener
+          false
+          (toEventTarget win)
+  }
+
+logModel :: forall event model. Show model => model -> Sub event
+logModel model = SubSimple \_ -> logShow model

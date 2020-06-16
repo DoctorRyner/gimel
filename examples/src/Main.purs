@@ -4,27 +4,27 @@ import Prelude hiding (div)
 
 import Data.Foldable (fold)
 import Effect (Effect)
-import Effect.Console (logShow)
 import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
-import Gimel.Sub (Subs)
+import Gimel.Sub (Subs, logModel, resizeWindow)
 import Gimel.Types (Update)
-import Gimel.Utils (wait, withAff, withEvent, withEvents)
+import Gimel.Utils (wait, withAff, withEvents)
 
 data Event
   = IncrementCounter
   | DecrementCounter
   | IncrementCounterEverySecond
   | Combine (Array Event)
+  | ResizeWindow Int Int
 
-type Model = {counter :: Int}
+type Model = {counter :: Int, window :: {height :: Int, width :: Int}}
 
 initialModel :: Model
-initialModel = {counter: 0}
+initialModel = {counter: 0, window: {height: 0, width: 0}}
 
 init :: Update Model Event
-init = initialModel `withEvent` IncrementCounterEverySecond
+init = pure initialModel -- `withEvent` IncrementCounterEverySecond
 
 view :: Model -> Html Event
 view model = fold
@@ -35,6 +35,7 @@ view model = fold
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
+  ResizeWindow height width   -> pure model {window = {height, width}}
   IncrementCounter            -> pure model {counter = model.counter + 1}
   DecrementCounter            -> pure model {counter = model.counter - 1}
   Combine events              -> model `withEvents` events
@@ -43,7 +44,10 @@ update model = case _ of
                                                                         ]
 
 subs :: Model -> Subs Event
-subs model = [\_ -> logShow model]
+subs model =
+  [ logModel model
+  ]
+    <> if model.counter > 5 then [] else [resizeWindow ResizeWindow]
 
 main :: Effect Unit
 main = run {init, view, update, subs}
