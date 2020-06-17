@@ -2,17 +2,16 @@ module Gimel.Engine where
 
 import Prelude
 
-import Data.Array (find, mapMaybe)
+import Data.Array (mapMaybe)
+import Data.Compactable (applyEither, bindEither, separateDefault)
 import Data.Either (Either(..), either)
-import Data.Foldable (foldMap, for_, sequence_, traverse_)
-import Data.FoldableWithIndex (forWithIndex_, traverseWithIndex_)
+import Data.Foldable (foldMap, sequence_, traverse_)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (runAff_, Aff)
-import Effect.Class.Console (logShow)
 import Effect.Console (errorShow, log)
 import Effect.Ref as Ref
 import Gimel.Html (toReactHtml)
@@ -56,37 +55,28 @@ classFromApp app = React.component "Gimel" constructor
         subsStore <- Ref.read subsRef
 
         let
-          subs = app.subs model
-          complexSubs =
-            mapMaybe
+          subs =
+            bindEither
+              (app.subs model)
               (case _ of
-                Sub x -> Just $ Tuple x.id x.attach
-                _     -> Nothing
+                Sub x       -> pure $ Right $ Tuple x.id x.attach
+                SubSimple f -> pure $ Left f
               )
-              subs
-          simpleSubs =
-            mapMaybe
-              (case _ of
-                SubSimple f -> Just f
-                _           -> Nothing
-              )
-              subs
+          complexSubs = subs.right
+          simpleSubs  = subs.left
 
         -- run simple subscriptions
         foldMap (\f -> f runEvent) simpleSubs
 
         -- run complex subscriptions
         newSubs <-
-          mapMaybe
-            identity
-            <$>
-              traverse
-                (\(Tuple id attach) ->
-                  case Map.lookup id subsStore of
-                    Just detach -> pure $ Just $ Tuple id detach
-                    Nothing     -> Just <<< Tuple id <$> attach runEvent
-                )
-                complexSubs
+          traverse
+            (\(Tuple id attach) ->
+              case Map.lookup id subsStore of
+                Just detach -> pure $ Tuple id detach
+                Nothing     -> Tuple id <$> attach runEvent
+            )
+            complexSubs
 
         -- Detach subscriptions if we can't find id
         let newSubsStore = Map.fromFoldable newSubs

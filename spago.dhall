@@ -3,6 +3,7 @@
   [ "aff"
   , "console"
   , "effect"
+  , "filterable"
   , "ordered-collections"
   , "psci-support"
   , "react"
