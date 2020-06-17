@@ -16,6 +16,8 @@ data Sub event
         , attach :: (event -> Effect Unit) -> Effect (Effect Unit)
         }
   | SubSimple ((event -> Effect Unit) -> Effect Unit)
+  -- | SubBatch (Array (Sub event))
+  -- | SubNone
 
 setSubId :: forall event. String -> Sub event -> Sub event
 setSubId id (Sub s) = Sub s { id = id }
