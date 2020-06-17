@@ -4,6 +4,7 @@
   , "console"
   , "effect"
   , "filterable"
+  , "js-timers"
   , "ordered-collections"
   , "psci-support"
   , "react"

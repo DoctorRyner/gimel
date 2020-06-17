@@ -60,6 +60,7 @@ classFromApp app = React.component "Gimel" constructor
               (case _ of
                 Sub x       -> pure $ Right $ Tuple x.id x.attach
                 SubSimple f -> pure $ Left f
+                SubNone     -> pure $ Left mempty
               )
           complexSubs = subs.right
           simpleSubs  = subs.left

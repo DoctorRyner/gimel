@@ -4,6 +4,7 @@
   , "console"
   , "effect"
   , "filterable"
+  , "js-timers"
   , "psci-support"
   , "react"
   , "react-dom"

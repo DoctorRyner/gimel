@@ -7,16 +7,15 @@ import Effect (Effect)
 import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
-import Gimel.Sub (Sub, logModel, resizeWindow)
+import Gimel.Sub (Sub, logModel, subIf)
+import Gimel.Sub.Time (every)
+import Gimel.Sub.Window (resizeWindow)
 import Gimel.Types (Update)
-import Gimel.Utils (wait, withAff, withEvents)
 
 data Event
   = IncrementCounter
   | DecrementCounter
-  | IncrementCounterEverySecond
-  | Combine (Array Event)
-  | OnResizeWindow Int Int
+  | OnResizeWindow {height :: Int, width :: Int}
 
 type Model = {counter :: Int, window :: {height :: Int, width :: Int}}
 
@@ -24,7 +23,7 @@ initialModel :: Model
 initialModel = {counter: 0, window: {height: 0, width: 0}}
 
 init :: Update Model Event
-init = pure initialModel -- `withEvent` IncrementCounterEverySecond
+init = pure initialModel
 
 view :: Model -> Html Event
 view model = fold
@@ -35,22 +34,16 @@ view model = fold
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  OnResizeWindow height width   -> pure model {window = {height, width}}
+  OnResizeWindow window       -> pure model {window = window}
   IncrementCounter            -> pure model {counter = model.counter + 1}
   DecrementCounter            -> pure model {counter = model.counter - 1}
-  Combine events              -> model `withEvents` events
-  IncrementCounterEverySecond -> model `withAff` do wait 1.0 $> Combine [ IncrementCounter
-                                                                        , IncrementCounterEverySecond
-                                                                        ]
 
 subs :: Model -> Array (Sub Event)
 subs model =
   [ logModel model
+  , every 1.0 IncrementCounter
+  , subIf (model.counter <= 5) $ resizeWindow OnResizeWindow
   ]
-    <>
-      if model.counter <= 5
-      then [resizeWindow OnResizeWindow]
-      else []
 
 main :: Effect Unit
 main = run {init, view, update, subs}
