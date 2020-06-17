@@ -5,13 +5,13 @@ import Prelude
 import Effect.Aff (Aff)
 import Gimel.Html (Html)
 import Data.Maybe (Maybe)
-import Gimel.Sub (Subs)
+import Gimel.Sub (Sub)
 
 type Application model event =
   { init   :: Update model event
   , view   :: model -> Html event
   , update :: model -> event -> Update model event
-  , subs   :: model -> Subs event
+  , subs   :: model -> Array (Sub event)
   }
 
 type Update model event = UpdateM event model

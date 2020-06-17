@@ -7,7 +7,7 @@ import Effect (Effect)
 import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
-import Gimel.Sub (Subs, logModel, resizeWindow)
+import Gimel.Sub (Sub, logModel, resizeWindow)
 import Gimel.Types (Update)
 import Gimel.Utils (wait, withAff, withEvents)
 
@@ -43,11 +43,14 @@ update model = case _ of
                                                                         , IncrementCounterEverySecond
                                                                         ]
 
-subs :: Model -> Subs Event
+subs :: Model -> Array (Sub Event)
 subs model =
   [ logModel model
   ]
-    <> if model.counter > 5 then [] else [resizeWindow OnResizeWindow]
+    <>
+      if model.counter <= 5
+      then [resizeWindow OnResizeWindow]
+      else []
 
 main :: Effect Unit
 main = run {init, view, update, subs}

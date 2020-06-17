@@ -9,15 +9,11 @@ import Web.Event.EventTarget (addEventListener, eventListener, removeEventListen
 import Web.HTML (window)
 import Web.HTML.Window (innerHeight, innerWidth, toEventTarget)
 
-type Subs event = Array (Sub event)
-
 data Sub event
   = Sub { id     :: String
         , attach :: (event -> Effect Unit) -> Effect (Effect Unit)
         }
   | SubSimple ((event -> Effect Unit) -> Effect Unit)
-  -- | SubBatch (Array (Sub event))
-  -- | SubNone
 
 setSubId :: forall event. String -> Sub event -> Sub event
 setSubId id (Sub s) = Sub s { id = id }
