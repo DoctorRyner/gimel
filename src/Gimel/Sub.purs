@@ -11,19 +11,19 @@ import Web.HTML.Window (innerHeight, innerWidth, toEventTarget)
 
 type Subs event = Array (Sub event)
 
-type Complex event = { id     :: String
-                     , attach :: (event -> Effect Unit) -> Effect (Effect Unit)
-                     }
-
-type Simple event = ((event -> Effect Unit) -> Effect Unit)
-
 data Sub event
-  = Sub (Complex event)
-  | SubSimple (Simple event)
+  = Sub { id     :: String
+        , attach :: (event -> Effect Unit) -> Effect (Effect Unit)
+        }
+  | SubSimple ((event -> Effect Unit) -> Effect Unit)
+
+setSubId :: forall event. String -> Sub event -> Sub event
+setSubId id (Sub s) = Sub s { id = id }
+setSubId _ s        = s
 
 resizeWindow :: forall event. (Int -> Int -> event) -> Sub event
 resizeWindow resizeEvent = Sub
-  { id    : "windowSize"
+  { id    : "resizeWindow"
   , attach: \runEvent -> do
       win      <- window
       listener <-

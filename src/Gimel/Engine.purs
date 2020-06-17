@@ -2,20 +2,22 @@ module Gimel.Engine where
 
 import Prelude
 
-import Data.Array (find)
-import Data.Either (either)
-import Data.Foldable (foldMap, traverse_)
-import Data.FoldableWithIndex (traverseWithIndex_)
+import Data.Array (find, mapMaybe)
+import Data.Either (Either(..), either)
+import Data.Foldable (foldMap, for_, sequence_, traverse_)
+import Data.FoldableWithIndex (forWithIndex_, traverseWithIndex_)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
+import Data.Traversable (traverse)
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (runAff_, Aff)
+import Effect.Class.Console (logShow)
 import Effect.Console (errorShow, log)
 import Effect.Ref as Ref
 import Gimel.Html (toReactHtml)
 import Gimel.Sub (Sub(..))
 import Gimel.Types (Application, UpdateM(..))
-import Gimel.Utils (justs)
 import React (Children, ReactClass, ReactElement, createElement, getState, modifyState)
 import React (component) as React
 import ReactDOM (render)
@@ -33,7 +35,6 @@ classFromApp app = React.component "Gimel" constructor
     let Update initial = app.init
 
     modelRef <- Ref.new initial.model
-
     subsRef  <- Ref.new (mempty :: SubRef)
 
     let
@@ -54,44 +55,45 @@ classFromApp app = React.component "Gimel" constructor
       updSubs model = do
         subsStore <- Ref.read subsRef
 
-        let subs = app.subs model
-
         let
-          runSub :: Sub event -> Effect Unit
-          runSub = case _ of
-            SubSimple f -> f runEvent
-            Sub       s -> do
-              let mbDetach = Map.lookup s.id subsStore
-              case mbDetach of
-                Just x  -> pure unit
-                Nothing -> do
-                  detach <- s.attach runEvent
-                  Ref.write (Map.insert s.id detach subsStore) subsRef
-              mempty
+          subs = app.subs model
+          complexSubs =
+            mapMaybe
+              (case _ of
+                Sub x -> Just $ Tuple x.id x.attach
+                _     -> Nothing
+              )
+              subs
+          simpleSubs =
+            mapMaybe
+              (case _ of
+                SubSimple f -> Just f
+                _           -> Nothing
+              )
+              subs
 
-        -- run subscriptions
-        foldMap runSub subs
+        -- run simple subscriptions
+        foldMap (\f -> f runEvent) simpleSubs
+
+        -- run complex subscriptions
+        newSubs <-
+          mapMaybe
+            identity
+            <$>
+              traverse
+                (\(Tuple id attach) ->
+                  case Map.lookup id subsStore of
+                    Just detach -> pure $ Just $ Tuple id detach
+                    Nothing     -> Just <<< Tuple id <$> attach runEvent
+                )
+                complexSubs
 
         -- Detach subscriptions if we can't find id
-        let
-          subsWithId =
-            justs $
-              map
-                (case _ of
-                  Sub x -> Just x
-                  _     -> Nothing
-                )
-                subs
+        let newSubsStore = Map.fromFoldable newSubs
 
-        traverseWithIndex_
-          (\s detach -> do
-            case find (\a -> s == a.id) subsWithId of
-              Just _  -> mempty
-              Nothing -> do
-                detach
-                Ref.write (Map.delete s subsStore) subsRef
-          )
-          subsStore
+        sequence_ $ Map.difference subsStore newSubsStore
+
+        Ref.write newSubsStore subsRef
 
       runMaybeEvent :: Maybe event -> Effect Unit
       runMaybeEvent x = maybe mempty runEvent x

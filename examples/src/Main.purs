@@ -16,7 +16,7 @@ data Event
   | DecrementCounter
   | IncrementCounterEverySecond
   | Combine (Array Event)
-  | ResizeWindow Int Int
+  | OnResizeWindow Int Int
 
 type Model = {counter :: Int, window :: {height :: Int, width :: Int}}
 
@@ -35,7 +35,7 @@ view model = fold
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  ResizeWindow height width   -> pure model {window = {height, width}}
+  OnResizeWindow height width   -> pure model {window = {height, width}}
   IncrementCounter            -> pure model {counter = model.counter + 1}
   DecrementCounter            -> pure model {counter = model.counter - 1}
   Combine events              -> model `withEvents` events
@@ -47,7 +47,7 @@ subs :: Model -> Subs Event
 subs model =
   [ logModel model
   ]
-    <> if model.counter > 5 then [] else [resizeWindow ResizeWindow]
+    <> if model.counter > 5 then [] else [resizeWindow OnResizeWindow]
 
 main :: Effect Unit
 main = run {init, view, update, subs}

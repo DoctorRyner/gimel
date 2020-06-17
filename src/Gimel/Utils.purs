@@ -2,7 +2,6 @@ module Gimel.Utils where
 
 import Prelude
 
-import Data.Array (uncons)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (Aff, Milliseconds(..), delay)
@@ -35,13 +34,3 @@ withMaybeEffects model = withMaybeAffs model <<< map liftEffect
 
 wait :: Number -> Aff Unit
 wait sec = delay $ Milliseconds $ sec * 1000.0
-
-justs :: forall a. Array (Maybe a) -> Array a
-justs [] = []
-justs xs =
-  case uncons xs of
-    Just {head: x, tail} ->
-      case x of
-        Just val -> [val] <> justs tail
-        Nothing  -> justs tail
-    Nothing              -> []
