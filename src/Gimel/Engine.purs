@@ -2,8 +2,7 @@ module Gimel.Engine where
 
 import Prelude
 
-import Data.Array (mapMaybe)
-import Data.Compactable (applyEither, bindEither, separateDefault)
+import Data.Compactable (bindEither)
 import Data.Either (Either(..), either)
 import Data.Foldable (foldMap, sequence_, traverse_)
 import Data.Map as Map
