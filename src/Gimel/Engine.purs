@@ -74,7 +74,9 @@ classFromApp app = React.component "Gimel" constructor
             (\(Tuple id attach) ->
               case Map.lookup id subsStore of
                 Just detach -> pure $ Tuple id detach
-                Nothing     -> Tuple id <$> attach runEvent
+                Nothing     -> do
+                  detach <- attach runEvent
+                  pure $ Tuple id detach
             )
             complexSubs
 

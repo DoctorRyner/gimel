@@ -29,3 +29,12 @@ resizeWindow resizeEvent = Sub
           false
           (toEventTarget win)
   }
+
+getWindow :: forall event. ({height :: Int, width :: Int} -> event) -> Sub event
+getWindow getWindowEvent = SubSimple
+  \runEvent -> do
+    win    <- window
+    height <- innerHeight win
+    width  <- innerWidth win
+
+    runEvent $ getWindowEvent {height, width}

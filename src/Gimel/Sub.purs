@@ -21,3 +21,6 @@ subIf cond sub = if cond then sub else SubNone
 
 logModel :: forall event model. Show model => model -> Sub event
 logModel model = SubSimple \_ -> logShow model
+
+execEvent :: forall event. event -> Sub event
+execEvent event = SubSimple \runEvent -> runEvent event

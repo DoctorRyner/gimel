@@ -7,9 +7,9 @@ import Effect (Effect)
 import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
-import Gimel.Sub (Sub, logModel, subIf)
-import Gimel.Sub.Time (every)
-import Gimel.Sub.Window (resizeWindow)
+import Gimel.Sub (Sub, execEvent, logModel, subIf)
+import Gimel.Sub.Time (delay, every)
+import Gimel.Sub.Window (getWindow, resizeWindow)
 import Gimel.Types (Update)
 
 data Event
@@ -49,6 +49,8 @@ subs model =
   [ logModel model
   , every 1.0 IncrementCounter
   , subIf (model.counter <= 5) $ resizeWindow OnResizeWindow
+  , delay 1.0 $ IncrementCounter
+  -- , getWindow OnResizeWindow
   ]
 
 main :: Effect Unit
