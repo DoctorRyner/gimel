@@ -34,9 +34,9 @@ view model = fold
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  OnResizeWindow window       -> pure model {window = window}
-  IncrementCounter            -> pure model {counter = model.counter + 1}
-  DecrementCounter            -> pure model {counter = model.counter - 1}
+  OnResizeWindow window -> pure model {window = window}
+  IncrementCounter      -> pure model {counter = model.counter + 1}
+  DecrementCounter      -> pure model {counter = model.counter - 1}
 
 subs :: Model -> Array (Sub Event)
 subs model =
