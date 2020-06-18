@@ -2,35 +2,33 @@ module Gimel.Sub where
 
 import Prelude
 
-import Data.Either (Either)
 import Effect (Effect)
 import Effect.Class.Console (logShow)
 
 data Sub model event
-  = Once   (model -> (event -> Effect Unit) -> Effect Unit)
+  = Once (model -> (event -> Effect Unit) -> Effect Unit)
   | Always (model -> (event -> Effect Unit) -> Effect Unit)
-  | When (WhenSub model event)
+  | ActiveWhen (ActiveSubInstance model event)
 
-type SubRef model event =
-  Array
-    (Either
-      { condition :: model -> Boolean
-      , attach    :: model -> (event -> Effect Unit) -> Effect (Effect Unit)
-      }
-      { condition :: model -> Boolean
-      , attach    :: model -> (event -> Effect Unit) -> Effect (Effect Unit)
-      , detach    :: Effect Unit
-      }
-    )
-
-type WhenSub model event =
-  { condition :: model -> Boolean
-  , attach    :: model -> (event -> Effect Unit) -> Effect (Effect Unit)
+type ActiveSubInstance model event =
+  { check    :: model -> Boolean
+  , activate :: model -> (event -> Effect Unit) -> Effect (Effect Unit)
+  , status   :: ActiveSubStatus
   }
 
-useWhen :: forall model event. (model -> Boolean) -> Sub model event -> Sub model event
-useWhen condition (When x) = When x {condition = condition}
-useWhen _ x                = x
+data ActiveSubStatus
+  = Active {stop :: Effect Unit}
+  | Inactive
+
+mkActiveSub
+  :: forall model event
+  .  (model -> (event -> Effect Unit) -> Effect (Effect Unit))
+  -> Sub model event
+mkActiveSub activate = ActiveWhen {check: const true, activate, status: Inactive}
+
+activeWhen :: forall model event. (model -> Boolean) -> Sub model event -> Sub model event
+activeWhen check (ActiveWhen x) = ActiveWhen x {check = check}
+activeWhen _ x                      = x
 
 logModel :: forall model event. Show model => Sub model event
 logModel = Always \model _ -> logShow model
