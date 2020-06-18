@@ -27,8 +27,8 @@ windowResize resizeEvent = mkActiveSub \_ runEvent -> do
       false
       (toEventTarget win)
 
-getWindow :: forall model event. ({height :: Int, width :: Int} -> event) -> Sub model event
-getWindow getWindowEvent = Once \_ runEvent -> do
+getWindowSize :: forall model event. ({height :: Int, width :: Int} -> event) -> Sub model event
+getWindowSize getWindowEvent = Once \_ runEvent -> do
   win    <- window
   height <- innerHeight win
   width  <- innerWidth win

@@ -9,7 +9,7 @@ import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
 import Gimel.Sub (Sub, execEvent, logModel, activeWhen)
 import Gimel.Sub.Time (every)
-import Gimel.Sub.Window (getWindow, windowResize)
+import Gimel.Sub.Window (getWindowSize, windowResize)
 import Gimel.Types (Update)
 
 data Event
@@ -48,7 +48,7 @@ subs :: Array (Sub Model Event)
 subs =
   [ logModel
   , execEvent IncrementCounter
-  , getWindow OnWindowResize
+  , getWindowSize OnWindowResize
   , activeWhen (\model -> model.counter < 5) $ windowResize OnWindowResize
   , every 1.0 IncrementCounter
   ]
