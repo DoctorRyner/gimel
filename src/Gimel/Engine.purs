@@ -58,7 +58,6 @@ classFromApp app = React.component "Gimel" constructor
             f state.model runEvent
           )
 
-      onceSubs :: Array (model -> (event -> Effect Unit) -> Effect Unit)
       onceSubs =
         mapMaybe
           (case _ of
@@ -67,7 +66,6 @@ classFromApp app = React.component "Gimel" constructor
           )
           app.subs
 
-      alwaysSubs :: Array (model -> (event -> Effect Unit) -> Effect Unit)
       alwaysSubs =
         mapMaybe
           (case _ of
@@ -76,12 +74,6 @@ classFromApp app = React.component "Gimel" constructor
           )
           app.subs
 
-      componentDidMount :: Effect Unit
-      componentDidMount = do
-        runAffs initial.affs
-        runOnceSubs onceSubs
-
-      activeSubs :: Array (ActiveSubInstance model event)
       activeSubs =
         mapMaybe
           (case _ of
@@ -124,7 +116,9 @@ classFromApp app = React.component "Gimel" constructor
 
     pure
       { state: {model: initial.model}
-      , componentDidMount
+      , componentDidMount: do
+          runAffs initial.affs
+          runOnceSubs onceSubs
       , render: do
           state <- getState this
 
