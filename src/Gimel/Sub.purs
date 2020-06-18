@@ -2,7 +2,7 @@ module Gimel.Sub where
 
 import Prelude
 
-import Data.Foldable (traverse_)
+import Data.Foldable (for_)
 import Effect (Effect)
 import Effect.Class.Console (logShow)
 
@@ -32,10 +32,10 @@ activeWhen check (ActiveWhen x) = ActiveWhen x {check = check}
 activeWhen _ x                  = x
 
 logModel :: forall model event. Show model => Sub model event
-logModel = Always \model _ -> logShow model
+logModel = Always $ const <<< logShow
 
 execEvents :: forall model event. Array event -> Sub model event
-execEvents events = Once \_ runEvent -> traverse_ runEvent events
+execEvents = Once <<< const <<< for_
 
 execEvent :: forall model event. event -> Sub model event
-execEvent event = execEvents [event]
+execEvent e = execEvents [e]
