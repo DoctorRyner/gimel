@@ -19,7 +19,7 @@ data Event
 
 type Model =
   { counter :: Int
-  , window :: {height :: Int, width :: Int}
+  , window  :: {height :: Int, width :: Int}
   }
 
 initialModel :: Model
