@@ -9,13 +9,13 @@ import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
 import Gimel.Sub (Sub, execEvent, logModel, activeWhen)
 import Gimel.Sub.Time (every)
-import Gimel.Sub.Window (getWindow, resizeWindow)
+import Gimel.Sub.Window (getWindow, windowResize)
 import Gimel.Types (Update)
 
 data Event
   = IncrementCounter
   | DecrementCounter
-  | OnResizeWindow {height :: Int, width :: Int}
+  | OnWindowResize {height :: Int, width :: Int}
 
 type Model =
   { counter :: Int
@@ -40,7 +40,7 @@ view model = fold
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  OnResizeWindow window -> pure model {window = window}
+  OnWindowResize window -> pure model {window = window}
   IncrementCounter      -> pure model {counter = model.counter + 1}
   DecrementCounter      -> pure model {counter = model.counter - 1}
 
@@ -48,8 +48,8 @@ subs :: Array (Sub Model Event)
 subs =
   [ logModel
   , execEvent IncrementCounter
-  , getWindow OnResizeWindow
-  , activeWhen (\model -> model.counter < 5) $ resizeWindow OnResizeWindow
+  , getWindow OnWindowResize
+  , activeWhen (\model -> model.counter < 5) $ windowResize OnWindowResize
   , every 1.0 IncrementCounter
   ]
 

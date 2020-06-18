@@ -8,8 +8,8 @@ import Web.Event.EventTarget (addEventListener, eventListener, removeEventListen
 import Web.HTML (window)
 import Web.HTML.Window (innerHeight, innerWidth, toEventTarget)
 
-resizeWindow :: forall model event. ({height :: Int, width :: Int} -> event) -> Sub model event
-resizeWindow resizeEvent = mkActiveSub \_ runEvent -> do
+windowResize :: forall model event. ({height :: Int, width :: Int} -> event) -> Sub model event
+windowResize resizeEvent = mkActiveSub \_ runEvent -> do
   win      <- window
   listener <-
     eventListener \_ -> do
