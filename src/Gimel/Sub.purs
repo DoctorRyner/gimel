@@ -2,25 +2,38 @@ module Gimel.Sub where
 
 import Prelude
 
+import Data.Either (Either)
 import Effect (Effect)
 import Effect.Class.Console (logShow)
 
-data Sub event
-  = Sub { id     :: String
-        , attach :: (event -> Effect Unit) -> Effect (Effect Unit)
-        }
-  | SubSimple ((event -> Effect Unit) -> Effect Unit)
-  | SubNone
+data Sub model event
+  = Once   (model -> (event -> Effect Unit) -> Effect Unit)
+  | Always (model -> (event -> Effect Unit) -> Effect Unit)
+  | When (WhenSub model event)
 
-setSubId :: forall event. String -> Sub event -> Sub event
-setSubId id (Sub s) = Sub s { id = id }
-setSubId _ s        = s
+type SubRef model event =
+  Array
+    (Either
+      { condition :: model -> Boolean
+      , attach    :: model -> (event -> Effect Unit) -> Effect (Effect Unit)
+      }
+      { condition :: model -> Boolean
+      , attach    :: model -> (event -> Effect Unit) -> Effect (Effect Unit)
+      , detach    :: Effect Unit
+      }
+    )
 
-subIf :: forall event. Boolean -> Sub event -> Sub event
-subIf cond sub = if cond then sub else SubNone
+type WhenSub model event =
+  { condition :: model -> Boolean
+  , attach    :: model -> (event -> Effect Unit) -> Effect (Effect Unit)
+  }
 
-logModel :: forall event model. Show model => model -> Sub event
-logModel model = SubSimple \_ -> logShow model
+useWhen :: forall model event. (model -> Boolean) -> Sub model event -> Sub model event
+useWhen condition (When x) = When x {condition = condition}
+useWhen _ x                = x
 
-execEvent :: forall event. event -> Sub event
-execEvent event = SubSimple \runEvent -> runEvent event
+logModel :: forall model event. Show model => Sub model event
+logModel = Always \model _ -> logShow model
+
+execEvent :: forall model event. event -> Sub model event
+execEvent event = Once \_ runEvent -> runEvent event

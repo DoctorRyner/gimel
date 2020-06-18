@@ -2,19 +2,17 @@ module Gimel.Engine where
 
 import Prelude
 
-import Data.Compactable (bindEither)
+import Data.Array (mapMaybe)
 import Data.Either (Either(..), either)
-import Data.Foldable (foldMap, sequence_, traverse_)
-import Data.Map as Map
+import Data.Foldable (traverse_)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Traversable (traverse)
-import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (runAff_, Aff)
 import Effect.Console (errorShow, log)
 import Effect.Ref as Ref
 import Gimel.Html (toReactHtml)
-import Gimel.Sub (Sub(..))
+import Gimel.Sub (Sub(..), WhenSub, SubRef)
 import Gimel.Types (Application, UpdateM(..))
 import React (Children, ReactClass, ReactElement, createElement, getState, modifyState)
 import React (component) as React
@@ -24,8 +22,6 @@ import Web.HTML (window) as DOM
 import Web.HTML.HTMLDocument (toNonElementParentNode) as DOM
 import Web.HTML.Window (document) as DOM
 
-type SubRef = Map.Map String (Effect Unit)
-
 classFromApp :: forall event model. Application model event -> ReactClass { children :: Children | () }
 classFromApp app = React.component "Gimel" constructor
  where
@@ -33,9 +29,26 @@ classFromApp app = React.component "Gimel" constructor
     let Update initial = app.init
 
     modelRef <- Ref.new initial.model
-    subsRef  <- Ref.new (mempty :: SubRef)
 
     let
+      onceSubs :: Array (model -> (event -> Effect Unit) -> Effect Unit)
+      onceSubs =
+        mapMaybe
+          (case _ of
+            Once f -> Just f
+            _      -> Nothing
+          )
+          app.subs
+
+      alwaysSubs :: Array (model -> (event -> Effect Unit) -> Effect Unit)
+      alwaysSubs =
+        mapMaybe
+          (case _ of
+            Always f -> Just f
+            _        -> Nothing
+          )
+          app.subs
+
       runEvent :: event -> Effect Unit
       runEvent event = do
         model <- Ref.read modelRef
@@ -46,47 +59,6 @@ classFromApp app = React.component "Gimel" constructor
         modifyState this $ \state -> state {model = next.model}
         runAffs next.affs
 
-        updSubs next.model
-
-      -- Perform subscriptions
-      updSubs :: model -> Effect Unit
-      updSubs model = do
-        subsStore <- Ref.read subsRef
-
-        let
-          subs =
-            bindEither
-              (app.subs model)
-              (case _ of
-                Sub x       -> pure $ Right $ Tuple x.id x.attach
-                SubSimple f -> pure $ Left f
-                SubNone     -> pure $ Left mempty
-              )
-          complexSubs = subs.right
-          simpleSubs  = subs.left
-
-        -- run simple subscriptions
-        foldMap (\f -> f runEvent) simpleSubs
-
-        -- run complex subscriptions
-        newSubs <-
-          traverse
-            (\(Tuple id attach) ->
-              case Map.lookup id subsStore of
-                Just detach -> pure $ Tuple id detach
-                Nothing     -> do
-                  detach <- attach runEvent
-                  pure $ Tuple id detach
-            )
-            complexSubs
-
-        -- Detach subscriptions if we can't find id
-        let newSubsStore = Map.fromFoldable newSubs
-
-        sequence_ $ Map.difference subsStore newSubsStore
-
-        Ref.write newSubsStore subsRef
-
       runMaybeEvent :: Maybe event -> Effect Unit
       runMaybeEvent x = maybe mempty runEvent x
 
@@ -96,12 +68,97 @@ classFromApp app = React.component "Gimel" constructor
       renderHtml :: {model :: model} -> ReactElement
       renderHtml state = toReactHtml runEvent $ app.view state.model
 
+      runOnceSubs :: Array (model -> (event -> Effect Unit) -> Effect Unit) -> Effect Unit
+      runOnceSubs =
+        traverse_
+          (\f -> do
+            state <- getState this
+            f state.model runEvent
+          )
+
+      componentDidMount :: Effect Unit
+      componentDidMount = do
+        runAffs initial.affs
+        runOnceSubs onceSubs
+
+      initialWhenSubs :: Array (WhenSub model event)
+      initialWhenSubs =
+        mapMaybe
+          (case _ of
+            When x -> Just x
+            _      -> Nothing
+          )
+          app.subs
+
+    subs <-
+      traverse
+        (\sub ->
+            if sub.condition initial.model
+            then do
+              detach <- sub.attach initial.model runEvent
+              pure $ Right {condition: sub.condition, attach: sub.attach, detach}
+            else pure $ Left {condition: sub.condition, attach: sub.attach}
+        )
+        initialWhenSubs
+
+    subsRef <- Ref.new (subs :: SubRef model event)
+
     pure
       { state: {model: initial.model}
-      , componentDidMount: do
-          updSubs initial.model
-          runAffs initial.affs
-      , render: renderHtml <$> getState this
+      , componentDidMount
+      , render: do
+          state <- getState this
+
+          -- Perform Always subs
+          traverse_ (\f -> f state.model runEvent) alwaysSubs
+
+          -- Perform When subs
+          whenSubs <- Ref.read subsRef
+
+          newSubs <-
+            traverse
+              (\sub -> do
+                  currState <- getState this
+                  let
+                    condition =
+                      case sub of
+                        Right x -> x.condition currState.model
+                        Left x  -> x.condition currState.model
+
+                  if condition
+                  then
+                    case sub of
+                      Right _ -> pure sub
+                      Left  s -> do
+                        detach <- s.attach currState.model runEvent
+                        pure $
+                          Right
+                            { condition:
+                                case sub of
+                                  Right x -> x.condition
+                                  Left  x -> x.condition
+                            , attach: s.attach
+                            , detach
+                            }
+                  else
+                    case sub of
+                      Left _  -> pure sub
+                      Right s -> do
+                        s.detach
+                        pure $
+                          Left
+                            { condition:
+                                case sub of
+                                  Right x -> x.condition
+                                  Left  x -> x.condition
+                            , attach: s.attach
+                            }
+              )
+              whenSubs
+
+          Ref.write newSubs subsRef
+
+          pure $ renderHtml state
       }
 
 run :: forall model event. Application model event -> Effect Unit

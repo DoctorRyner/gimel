@@ -11,7 +11,7 @@ type Application model event =
   { init   :: Update model event
   , view   :: model -> Html event
   , update :: model -> event -> Update model event
-  , subs   :: model -> Array (Sub event)
+  , subs   :: Array (Sub model event)
   }
 
 type Update model event = UpdateM event model

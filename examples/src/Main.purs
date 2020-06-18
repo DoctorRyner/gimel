@@ -7,8 +7,8 @@ import Effect (Effect)
 import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
-import Gimel.Sub (Sub, execEvent, logModel, subIf)
-import Gimel.Sub.Time (delay, every)
+import Gimel.Sub (Sub, execEvent, logModel, useWhen)
+import Gimel.Sub.Time (every)
 import Gimel.Sub.Window (getWindow, resizeWindow)
 import Gimel.Types (Update)
 
@@ -44,13 +44,13 @@ update model = case _ of
   IncrementCounter      -> pure model {counter = model.counter + 1}
   DecrementCounter      -> pure model {counter = model.counter - 1}
 
-subs :: Model -> Array (Sub Event)
-subs model =
-  [ logModel model
+subs :: Array (Sub Model Event)
+subs =
+  [ logModel
+  , execEvent IncrementCounter
+  , getWindow OnResizeWindow
+  , useWhen (\model -> model.counter < 5) $ resizeWindow OnResizeWindow
   , every 1.0 IncrementCounter
-  , subIf (model.counter <= 5) $ resizeWindow OnResizeWindow
-  , delay 1.0 $ IncrementCounter
-  -- , getWindow OnResizeWindow
   ]
 
 main :: Effect Unit
