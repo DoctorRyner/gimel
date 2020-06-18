@@ -2,7 +2,6 @@ module Gimel.Types where
 
 import Prelude
 
-import Data.Either (Either)
 import Data.Foldable (fold)
 import Data.Maybe (Maybe)
 import Effect (Effect)
