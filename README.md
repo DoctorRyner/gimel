@@ -1,5 +1,9 @@
 # gimel
 
+## What is this?
+
+This is an Elm-like UI library with power of React. Elm is great but it doesn't have that much widgets and ready-to-use widgets as React. Also PureScript is just much more powerful than Elm. I wanted to make this library as easy-to-use as Elm
+
 ## How to run the examples?
 
 Just enter the examples folder and type `make init def`. Next time you can just type `make` because everything is already initialized
