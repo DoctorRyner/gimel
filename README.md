@@ -6,6 +6,8 @@ This is an Elm-like UI library with power of React. Elm is great but it doesn't 
 
 ## How to run the examples?
 
+If you don't have `npm`, you'll need to install it. For example, you can download it from here https://nodejs.org/en/download/
+
 Just enter the examples folder and type `make init def`. Next time you can just type `make` because everything is already initialized
 
 ## Tools
