@@ -7,7 +7,7 @@ import Effect (Effect)
 import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
-import Gimel.Sub (Sub, execEvent, logModel, useWhen)
+import Gimel.Sub (Sub, execEvent, logModel, activeWhen)
 import Gimel.Sub.Time (every)
 import Gimel.Sub.Window (getWindow, resizeWindow)
 import Gimel.Types (Update)
@@ -49,7 +49,7 @@ subs =
   [ logModel
   , execEvent IncrementCounter
   , getWindow OnResizeWindow
-  , useWhen (\model -> model.counter < 5) $ resizeWindow OnResizeWindow
+  , activeWhen (\model -> model.counter < 5) $ resizeWindow OnResizeWindow
   , every 1.0 IncrementCounter
   ]
 
