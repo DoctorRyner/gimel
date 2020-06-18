@@ -23,7 +23,10 @@ type Model =
   }
 
 initialModel :: Model
-initialModel = {counter: 0, window: {height: 0, width: 0}}
+initialModel =
+  { counter: 0
+  , window: {height: 0, width: 0}
+  }
 
 init :: Update Model Event
 init = pure initialModel
