@@ -3,7 +3,6 @@
   [ "aff"
   , "console"
   , "effect"
-  , "filterable"
   , "js-timers"
   , "psci-support"
   , "react"
