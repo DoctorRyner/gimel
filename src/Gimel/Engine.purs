@@ -26,9 +26,9 @@ classFromApp :: forall event model. Application model event -> ReactClass { chil
 classFromApp app = React.component "Gimel" constructor
  where
   constructor this = do
-    let Update initial = app.init
+    initialModel <- app.init
 
-    modelRef <- Ref.new initial.model
+    modelRef <- Ref.new initialModel
 
     let
       runEvent :: event -> Effect Unit
@@ -104,9 +104,9 @@ classFromApp app = React.component "Gimel" constructor
       initActiveSubs =
         traverse
           (\sub ->
-              if sub.check initial.model
+              if sub.check initialModel
               then do
-                stop <- sub.activate initial.model runEvent
+                stop <- sub.activate initialModel runEvent
                 pure sub {status = Active {stop}}
               else pure sub
           )
@@ -115,10 +115,8 @@ classFromApp app = React.component "Gimel" constructor
     activeSubsRef <- Ref.new =<< initActiveSubs
 
     pure
-      { state: {model: initial.model}
-      , componentDidMount: do
-          runAffs initial.affs
-          runOnceSubs onceSubs
+      { state: {model: initialModel}
+      , componentDidMount: runOnceSubs onceSubs
       , render: do
           state <- getState this
 
