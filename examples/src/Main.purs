@@ -17,7 +17,10 @@ data Event
   | DecrementCounter
   | OnResizeWindow {height :: Int, width :: Int}
 
-type Model = {counter :: Int, window :: {height :: Int, width :: Int}}
+type Model =
+  { counter :: Int
+  , window :: {height :: Int, width :: Int}
+  }
 
 initialModel :: Model
 initialModel = {counter: 0, window: {height: 0, width: 0}}
