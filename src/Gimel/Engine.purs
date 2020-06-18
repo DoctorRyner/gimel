@@ -11,9 +11,9 @@ import Effect (Effect)
 import Effect.Aff (runAff_, Aff)
 import Effect.Console (errorShow, log)
 import Effect.Ref as Ref
-import Gimel.Html (toReactHtml)
+import Gimel.Html (Html, toReactHtml)
 import Gimel.Sub (ActiveSubInstance, ActiveSubStatus(..), Sub(..))
-import Gimel.Types (Application, UpdateM(..))
+import Gimel.Types (Application, UpdateM(..), Update, subsNone)
 import React (Children, ReactClass, ReactElement, createElement, getState, modifyState)
 import React (component) as React
 import ReactDOM (render)
@@ -143,3 +143,28 @@ runOn nodeId app = do
   case maybeRoot of
     Just root -> render (createElement (classFromApp app) {} []) root *> mempty
     Nothing   -> errorShow $ "Can't find an element with an id " <> nodeId
+
+pureApp
+  :: forall model event
+  .  {init :: model, view :: model -> Html event, update :: model -> event -> model}
+  -> Application model event
+pureApp app =
+  { init: pure app.init
+  , update: \model -> pure <<< app.update model
+  , view: app.view
+  , subs: subsNone
+  }
+
+sandbox
+  :: forall model event
+  .  { init :: model
+     , view :: model -> Html event
+     , update :: model -> event -> Update model event
+     }
+  -> Application model event
+sandbox app =
+  { init: pure app.init
+  , update: app.update
+  , view: app.view
+  , subs: subsNone
+  }
