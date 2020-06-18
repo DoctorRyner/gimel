@@ -101,10 +101,10 @@ classFromApp app = React.component "Gimel" constructor
               else stop $> Inactive
             Inactive ->
               if sub.check currState.model
-              then pure Inactive
-              else do
+              then do
                 stop <- sub.activate currState.model runEvent
                 pure $ Active {stop}
+              else pure Inactive
 
         pure sub {status = status}
 

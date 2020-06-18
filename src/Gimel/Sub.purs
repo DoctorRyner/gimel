@@ -28,7 +28,7 @@ mkActiveSub activate = ActiveWhen {check: const true, activate, status: Inactive
 
 activeWhen :: forall model event. (model -> Boolean) -> Sub model event -> Sub model event
 activeWhen check (ActiveWhen x) = ActiveWhen x {check = check}
-activeWhen _ x                      = x
+activeWhen _ x                  = x
 
 logModel :: forall model event. Show model => Sub model event
 logModel = Always \model _ -> logShow model
