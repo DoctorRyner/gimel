@@ -1,4 +1,4 @@
-# gimel
+# Gimel
 
 ## What is this?
 
