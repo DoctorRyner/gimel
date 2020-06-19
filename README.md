@@ -13,8 +13,8 @@ Just enter the examples folder and type `make init def`. Next time you can just 
 ## Tools
 
 We use:
-* `PureScript` as a programming language because it's much more powerful and less error-prone than `JavaScript`, install it using `npm i -g purescript`
-* `spago` as a PureScript build tool, it's much more flexible and reliable than pulp, install it using `npm i -g spago`
+* `PureScript` as a programming language because it's much more powerful and less error-prone than `JavaScript`, you can install it using `npm i -g purescript`
+* `spago` as a PureScript build tool, it's much more flexible and reliable than pulp, you can install it using `npm i -g spago`
 * `parcel` as a web bundler, we use it because it doesn't require ANY configuration in opposite to `webpack`
 
 # DEPRECATED
