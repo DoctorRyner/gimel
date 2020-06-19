@@ -8,8 +8,6 @@ This is an Elm-like UI library with power of React. Elm is great but it doesn't 
 
 If you don't have `npm`, you'll need to install it. For example, you can download it from here https://nodejs.org/en/download/
 
-Then run `npm i -g purescript spago` to install tools
-
 Just enter the examples folder and type `make init def`. Next time you can just type `make` because everything is already initialized
 
 ## Tools
@@ -18,6 +16,8 @@ We use:
 * `PureScript` as a programming language because it's much more powerful and less error-prone than `JavaScript`, install it using `npm i -g purescript`
 * `spago` as a PureScript build tool, it's much more flexible and reliable than pulp, install it using `npm i -g spago`
 * `parcel` as a web bundler, we use it because it doesn't require ANY configuration in opposite to `webpack`
+
+# DEPRECATED
 
 ## Templates
 
