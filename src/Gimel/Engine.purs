@@ -26,7 +26,7 @@ classFromApp :: forall event model. Application model event -> ReactClass { chil
 classFromApp app = React.component "Gimel" constructor
  where
   constructor this = do
-    initialModel <- app.init
+    let initialModel = app.init
 
     modelRef <- Ref.new initialModel
 
@@ -149,7 +149,7 @@ pureApp
   .  {init :: model, view :: model -> Html event, update :: model -> event -> model}
   -> Application model event
 pureApp app =
-  { init: pure app.init
+  { init: app.init
   , update: \model -> pure <<< app.update model
   , view: app.view
   , subs: subsNone
@@ -163,7 +163,7 @@ sandbox
      }
   -> Application model event
 sandbox app =
-  { init: pure app.init
+  { init: app.init
   , update: app.update
   , view: app.view
   , subs: subsNone

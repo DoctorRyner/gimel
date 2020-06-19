@@ -4,13 +4,12 @@ import Prelude
 
 import Data.Foldable (fold)
 import Data.Maybe (Maybe)
-import Effect (Effect)
 import Effect.Aff (Aff)
 import Gimel.Html (Html)
 import Gimel.Sub (Sub)
 
 type Application model event =
-  { init   :: Effect model
+  { init   :: model
   , view   :: model -> Html event
   , update :: model -> event -> Update model event
   , subs   :: Array (Sub model event)
@@ -48,10 +47,7 @@ subsNone :: forall model event. Array (Sub model event)
 subsNone = []
 
 mkApp :: forall model event. model -> Application model event
-mkApp model = {init: pure model, view: viewNone, update: updateNone, subs: subsNone}
-
-mkApp' :: forall model event. Effect model -> Application model event
-mkApp' init = {init, view: viewNone, update: updateNone, subs: subsNone}
+mkApp init = {init, view: viewNone, update: updateNone, subs: subsNone}
 
 -- modifyModel :: forall model event. (model -> Aff model) -> Update model event
 -- modifyModel f = Update {}

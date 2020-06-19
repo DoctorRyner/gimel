@@ -22,8 +22,8 @@ type Model =
   , window  :: {height :: Int, width :: Int}
   }
 
-init :: Effect Model
-init = pure
+init :: Model
+init =
   { counter: 0
   , window: {height: 0, width: 0}
   }
