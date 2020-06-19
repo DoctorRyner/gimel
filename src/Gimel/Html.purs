@@ -11,10 +11,10 @@ import React.DOM (text) as DOM
 import React.DOM.Props (Props, unsafeFromPropsArray)
 
 data Html event
-    = Html ReactEl (Array (Attribute event)) (Array (Html event))
-    | Text String
-    | Fragment (Array (Html event))
-    | RawReact ReactElement
+  = Html ReactEl (Array (Attribute event)) (Array (Html event))
+  | Text String
+  | Fragment (Array (Html event))
+  | RawReact ReactElement
 
 instance semigroupHtml :: Semigroup (Html event) where
   append x y = Fragment [x, y]
@@ -46,11 +46,12 @@ elAttrs tagName attrs = el tagName attrs []
 raw :: forall event. ReactElement -> Html event
 raw = RawReact
 
-react :: forall props event
-      .  ReactClass { children :: Children | props }
-      -> Array (Attribute event)
-      -> Array (Html event)
-      -> Html event
+react
+  :: forall props event
+  .  ReactClass { children :: Children | props }
+  -> Array (Attribute event)
+  -> Array (Html event)
+  -> Html event
 react class_ = Html (unsafeCreateElement class_ <<< unsafeFromPropsArray)
       
 toReactHtml :: forall event. (event -> Effect Unit) -> Html event -> ReactElement

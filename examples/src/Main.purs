@@ -2,11 +2,13 @@ module Main where
 
 import Prelude hiding (div)
 
+import CSS (color, fontSize, green, px)
 import Data.Foldable (fold)
 import Effect (Effect)
 import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
+import Gimel.Html.Styled (styled)
 import Gimel.Sub (Sub, execEvent, logModel, activeWhen)
 import Gimel.Sub.Time (every)
 import Gimel.Sub.Window (getWindowSize, windowResize)
@@ -31,9 +33,13 @@ init =
 view :: Model -> Html Event
 view model = fold
   [ button [onClick IncrementCounter] [text "+"]
-  , textS model.counter
+  , styledText [] [textS model.counter]
   , button [onClick DecrementCounter] [text "-"]
   ]
+ where
+  styledText = styled "div" do
+    color green
+    fontSize $ px 20.0
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of

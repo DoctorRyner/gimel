@@ -20,7 +20,7 @@ type Update model event = UpdateM event model
 newtype UpdateM event model =
   Update
     { model :: model
-    , affs :: Array (Aff (Maybe event))
+    , affs  :: Array (Aff (Maybe event))
     }
 
 instance functorUpdate :: Functor (UpdateM event) where

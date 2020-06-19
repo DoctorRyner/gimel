@@ -123,7 +123,7 @@ classFromApp app = React.component "Gimel" constructor
           -- Perform Always subs
           traverse_ (\f -> f state.model runEvent) alwaysSubs
 
-          -- Perform Active subs
+          -- Update Active subs
           currActiveSubs    <- Ref.read activeSubsRef
           updatedActiveSubs <- traverse updateActiveSub currActiveSubs
 

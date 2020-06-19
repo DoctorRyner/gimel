@@ -2,6 +2,7 @@
 , dependencies =
   [ "aff"
   , "console"
+  , "css"
   , "effect"
   , "js-timers"
   , "psci-support"
