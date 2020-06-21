@@ -39,6 +39,9 @@ onClick = on "Click"
 onChange :: forall event. (String -> event) -> Attribute event
 onChange f = on_ "Change" \e -> f (targetOf e).value
 
+onInput :: forall event. (String -> event) -> Attribute event
+onInput f = on_ "Input" \e -> f (targetOf e).value
+
 onCheck :: forall event. (Boolean -> event) -> Attribute event
 onCheck f = on_ "Check" \e -> f (targetOf e).checked
 
