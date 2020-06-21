@@ -9,4 +9,5 @@ generated-docs
 .psa*
 .spago
 .cache
+.parcel-cache
 dist

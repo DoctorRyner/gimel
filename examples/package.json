@@ -4,18 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "watch": "spago build --watch",
-    "dev": "parcel static/index.html && spago build --watch",
-    "build": "rm -r dist && spago build && parcel build static/index.html --no-source-maps --experimental-scope-hoisting"
+    "parcel:watch": "spago build --watch",
+    "parcel:dev": "parcel static/index.html",
+    "build": "rm -r dist; spago build && parcel build static/index.html --no-source-maps --experimental-scope-hoisting"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "parcel": "^1.12.4"
+    "parcel": "^2.0.0-beta.1"
   },
-  "dependencies": {
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "styled-components": "^5.1.1"
-  }
+  "dependencies": {}
 }

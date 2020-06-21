@@ -1,7 +1,6 @@
 module Gimel.Html where
 
 import Prelude
-
 import Data.Foldable (fold)
 import Effect (Effect)
 import Gimel.Attributes (Attribute, toReactProp)
@@ -53,7 +52,7 @@ react
   -> Array (Html event)
   -> Html event
 react class_ = Html (unsafeCreateElement class_ <<< unsafeFromPropsArray)
-      
+
 toReactHtml :: forall event. (event -> Effect Unit) -> Html event -> ReactElement
 toReactHtml runEvent = case _ of
   Text str                  -> DOM.text str
@@ -63,14 +62,13 @@ toReactHtml runEvent = case _ of
                                        (map (toReactHtml runEvent) childs)
 
 -- Shortcut types
-type ReactEl = Array Props -> Array ReactElement -> ReactElement
 type El      = forall event. Array (Attribute event) -> Array (Html event) -> Html event
 type El_     = forall event. Array (Attribute event) -> Html event -> Html event
 type El'     = forall event. Array (Html event) -> Html event
 type ElAttrs = forall event. Array (Attribute event) -> Html event
+type ReactEl = Array Props -> Array ReactElement -> ReactElement
 
 -- Tags
-
 a_ :: forall event. Array (Attribute event) -> Html event -> Html event
 a_ = el_ "a"
 

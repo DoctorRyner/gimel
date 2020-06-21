@@ -25,7 +25,7 @@ infix 4 attribute as =:
 
 toReactProp :: forall event. (event -> Effect Unit) -> Attribute event -> Props
 toReactProp _ (Attribute prop) = prop
-toReactProp runEvent (AttributeEvent eventName event) = 
+toReactProp runEvent (AttributeEvent eventName event) =
   unsafeMkProps eventName $ mkEffectFn1 (runEvent <<< event)
 
 -- Events

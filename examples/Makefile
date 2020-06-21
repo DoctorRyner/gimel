@@ -7,6 +7,7 @@ init:
 	spago build
 
 dev:
-	npm run dev
+	npm run parcel:dev
+
 watch:
-	npm run watch
+	npm run parcel:watch

@@ -1,7 +1,6 @@
 module Main where
 
 import Prelude hiding (div)
-
 import CSS (color, fontSize, green, px)
 import Data.Foldable (fold)
 import Effect (Effect)
@@ -17,35 +16,37 @@ import Gimel.Types (Update)
 data Event
   = IncrementCounter
   | DecrementCounter
-  | OnWindowResize {height :: Int, width :: Int}
+  | OnWindowResize { height :: Int, width :: Int }
 
-type Model =
-  { counter :: Int
-  , window  :: {height :: Int, width :: Int}
-  }
+type Model
+  = { counter :: Int
+    , window :: { height :: Int, width :: Int }
+    }
 
 init :: Model
 init =
   { counter: 0
-  , window: {height: 0, width: 0}
+  , window: { height: 0, width: 0 }
   }
 
 view :: Model -> Html Event
-view model = fold
-  [ button [onClick IncrementCounter] [text "+"]
-  , styledText [] [textS model.counter]
-  , button [onClick DecrementCounter] [text "-"]
-  ]
- where
-  styledText = styled "div" do
-    color green
-    fontSize $ px 20.0
+view model =
+  fold
+    [ button [ onClick IncrementCounter ] [ text "+" ]
+    , styledText [] [ textS model.counter ]
+    , button [ onClick DecrementCounter ] [ text "-" ]
+    ]
+  where
+  styledText =
+    styled "div" do
+      color green
+      fontSize $ px 20.0
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  OnWindowResize window -> pure model {window = window}
-  IncrementCounter      -> pure model {counter = model.counter + 1}
-  DecrementCounter      -> pure model {counter = model.counter - 1}
+  OnWindowResize window -> pure model { window = window }
+  IncrementCounter -> pure model { counter = model.counter + 1 }
+  DecrementCounter -> pure model { counter = model.counter - 1 }
 
 subs :: Array (Sub Model Event)
 subs =
@@ -57,4 +58,4 @@ subs =
   ]
 
 main :: Effect Unit
-main = run {init, view, update, subs}
+main = run { init, view, update, subs }
