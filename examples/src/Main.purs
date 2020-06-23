@@ -3,53 +3,50 @@ module Main where
 import Prelude hiding (div)
 
 import Data.Foldable (fold)
+import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Gimel.Engine (run)
-import Gimel.Html (Html, p, span, text)
+import Gimel.Html (Html, h1, text, textS)
 import Gimel.Http (post)
-import Gimel.Sub (Sub, execEvent)
+import Gimel.Sub (Sub)
+import Gimel.Sub.Time (delay)
 import Gimel.Types (Update)
-import Gimel.Utils (withCmd)
 
-type User =
-  { uid :: String
-  , fullName :: String
-  , role :: String
+type LoginResult =
+  { id :: Int
+  , token :: String
   }
 
-data Event
-  = NoEvent
-  | UsersAsk
-  | UsersSet (Array User)
+data Event = SaveLoginResult LoginResult
 
 type Model =
-  { users :: Array User
+  { loginResult :: Maybe LoginResult
   }
 
 init :: Model
 init =
-  { users: []
+  { loginResult: Nothing
   }
 
 view :: Model -> Html Event
-view model = fold $ map userToHtml model.users
-
-userToHtml :: User -> Html Event
-userToHtml user = span []
-  [ p [] [text $ "Name: " <> user.fullName]
-  , p [] [text $ "Role: " <> user.role]
-  ]
+view model = case model.loginResult of
+  Nothing          -> text "Didn't get login result yet! (Wait for 2 seconds)"
+  Just loginResult -> fold [ h1 [] [text "Login result:"]
+                           , textS loginResult
+                           ]
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  NoEvent        -> pure model
-  UsersSet users -> pure model {users = users}
-  UsersAsk       -> model `withCmd` post "http://localhost:1234/api/users"
-                                         {action: "Read", payload: {}}
-                                         UsersSet
+  SaveLoginResult loginResult -> pure model {loginResult = Just loginResult}
 
 subs :: Array (Sub Model Event)
-subs = [execEvent UsersAsk]
+subs = 
+  [ delay 2.0 $ post "https://reqres.in/api/register"
+                     { email: "eve.holt@reqres.in"
+                     , password: "pistol"
+                     }
+                     SaveLoginResult
+  ]
 
 main :: Effect Unit
 main = run { init, view, update, subs }

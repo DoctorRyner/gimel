@@ -2,9 +2,12 @@ module Gimel.Sub where
 
 import Prelude
 
-import Data.Foldable (for_)
+import Data.Foldable (traverse_)
 import Effect (Effect)
+import Effect.Aff (launchAff_)
+import Effect.Class (liftEffect)
 import Effect.Class.Console (logShow)
+import Gimel.Cmd (Cmd(..))
 
 data Sub model event
   = Once (model -> (event -> Effect Unit) -> Effect Unit)
@@ -35,7 +38,16 @@ logModel :: forall model event. Show model => Sub model event
 logModel = Always $ const <<< logShow
 
 execEvents :: forall model event. Array event -> Sub model event
-execEvents = Once <<< const <<< for_
+execEvents events = Once \_ runEvent -> traverse_ runEvent events
+
+runCmd :: forall model event. Cmd event -> Sub model event
+runCmd cmd = runCmds [cmd]
+
+runCmds :: forall model event. Array (Cmd event) -> Sub model event
+runCmds cmds = Once \_ runEvent -> do
+  traverse_
+    (\(Cmd cmd) -> launchAff_ $ cmd (liftEffect <<< runEvent))
+    cmds
 
 execEvent :: forall model event. event -> Sub model event
 execEvent e = execEvents [e]
