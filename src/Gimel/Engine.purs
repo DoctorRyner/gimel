@@ -8,9 +8,11 @@ import Data.Foldable (traverse_)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Traversable (traverse)
 import Effect (Effect)
-import Effect.Aff (runAff_, Aff)
+import Effect.Aff (Aff, launchAff_, runAff_)
+import Effect.Class (liftEffect)
 import Effect.Console (errorShow, log)
 import Effect.Ref as Ref
+import Gimel.Cmd (Cmd(..))
 import Gimel.Html (Html, toReactHtml)
 import Gimel.Sub (ActiveSubInstance, ActiveSubStatus(..), Sub(..))
 import Gimel.Types (Application, UpdateM(..), Update, subsNone)
@@ -40,12 +42,19 @@ classFromApp app = React.component "Gimel" constructor
         Ref.write next.model modelRef
         modifyState this $ \state -> state {model = next.model}
         runAffs next.affs
+        runCmds next.cmds
 
       runMaybeEvent :: Maybe event -> Effect Unit
       runMaybeEvent x = maybe mempty runEvent x
 
       runAffs :: Array (Aff (Maybe event)) -> Effect Unit 
       runAffs affs = traverse_ (runAff_ $ either (log <<< show) runMaybeEvent) affs
+
+      runCmds :: Array (Cmd event) -> Effect Unit
+      runCmds cmds =
+        traverse_
+          (\(Cmd x) -> launchAff_ $ x (liftEffect <<< runEvent))
+          cmds
 
       renderHtml :: {model :: model} -> ReactElement
       renderHtml state = toReactHtml runEvent $ app.view state.model

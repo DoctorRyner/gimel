@@ -27,6 +27,9 @@ text = Text
 textS :: forall event a. Show a => a -> Html event
 textS = Text <<< show
 
+frag :: forall event. Array (Html event) -> Html event
+frag = Fragment
+
 reactNodeFromTag :: String -> Array Props -> Array ReactElement -> ReactElement
 reactNodeFromTag = mkDOM (IsDynamic false)
 

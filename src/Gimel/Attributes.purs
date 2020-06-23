@@ -36,6 +36,27 @@ targetOf e = (unsafeCoerce e).target
 onClick :: forall event. event -> Attribute event
 onClick = on "Click"
 
+onDoubleClick :: forall event. event -> Attribute event
+onDoubleClick = on "DoubleClick"
+
+onMouseDown :: forall event. event -> Attribute event
+onMouseDown = on "onMouseDown"
+
+onMouseUp :: forall event. event -> Attribute event
+onMouseUp = on "onMouseUp"
+
+onMouseEnter :: forall event. event -> Attribute event
+onMouseEnter = on "onMouseEnter"
+
+onMouseLeave :: forall event. event -> Attribute event
+onMouseLeave = on "onMouseLeave"
+
+onMouseOver :: forall event. event -> Attribute event
+onMouseOver = on "onMouseOver"
+
+onMouseOut :: forall event. event -> Attribute event
+onMouseOut = on "onMouseOut"
+
 onChange :: forall event. (String -> event) -> Attribute event
 onChange f = on_ "Change" \e -> f (targetOf e).value
 
@@ -44,6 +65,15 @@ onInput f = on_ "Input" \e -> f (targetOf e).value
 
 onCheck :: forall event. (Boolean -> event) -> Attribute event
 onCheck f = on_ "Check" \e -> f (targetOf e).checked
+
+onSubmit :: forall event. event -> Attribute event
+onSubmit = on "Submit"
+
+onBlur :: forall event. event -> Attribute event
+onBlur = on "Blur"
+
+onFocus :: forall event. event -> Attribute event
+onFocus = on "Focus"
 
 -- Attributes
 
@@ -226,6 +256,9 @@ key = attribute "key"
 
 keyparams :: forall event. String -> Attribute event
 keyparams = attribute "keyparams"
+
+type_ :: forall event. String -> Attribute event
+type_ = attribute "type"
 
 keytype :: forall event. String -> Attribute event
 keytype = attribute "keytype"

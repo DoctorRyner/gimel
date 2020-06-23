@@ -1,6 +1,9 @@
 { name = "my-project"
 , dependencies =
   [ "aff"
+  , "affjax"
+  , "argonaut"
+  , "argonaut-codecs"
   , "console"
   , "css"
   , "effect"

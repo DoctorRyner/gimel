@@ -1,61 +1,55 @@
 module Main where
 
 import Prelude hiding (div)
-import CSS (color, fontSize, green, px)
+
 import Data.Foldable (fold)
 import Effect (Effect)
-import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
-import Gimel.Html (Html, button, text, textS)
-import Gimel.Html.Styled (styled)
-import Gimel.Sub (Sub, execEvent, logModel, activeWhen)
-import Gimel.Sub.Time (every)
-import Gimel.Sub.Window (getWindowSize, windowResize)
+import Gimel.Html (Html, p, span, text)
+import Gimel.Http (post)
+import Gimel.Sub (Sub, execEvent)
 import Gimel.Types (Update)
+import Gimel.Utils (withCmd)
+
+type User =
+  { uid :: String
+  , fullName :: String
+  , role :: String
+  }
 
 data Event
-  = IncrementCounter
-  | DecrementCounter
-  | OnWindowResize { height :: Int, width :: Int }
+  = NoEvent
+  | UsersAsk
+  | UsersSet (Array User)
 
-type Model
-  = { counter :: Int
-    , window :: { height :: Int, width :: Int }
-    }
+type Model =
+  { users :: Array User
+  }
 
 init :: Model
 init =
-  { counter: 0
-  , window: { height: 0, width: 0 }
+  { users: []
   }
 
 view :: Model -> Html Event
-view model =
-  fold
-    [ button [ onClick IncrementCounter ] [ text "+" ]
-    , styledText [] [ textS model.counter ]
-    , button [ onClick DecrementCounter ] [ text "-" ]
-    ]
-  where
-  styledText =
-    styled "div" do
-      color green
-      fontSize $ px 20.0
+view model = fold $ map userToHtml model.users
+
+userToHtml :: User -> Html Event
+userToHtml user = span []
+  [ p [] [text $ "Name: " <> user.fullName]
+  , p [] [text $ "Role: " <> user.role]
+  ]
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  OnWindowResize window -> pure model { window = window }
-  IncrementCounter -> pure model { counter = model.counter + 1 }
-  DecrementCounter -> pure model { counter = model.counter - 1 }
+  NoEvent        -> pure model
+  UsersSet users -> pure model {users = users}
+  UsersAsk       -> model `withCmd` post "http://localhost:1234/api/users"
+                                         {action: "Read", payload: {}}
+                                         UsersSet
 
 subs :: Array (Sub Model Event)
-subs =
-  [ logModel
-  , execEvent IncrementCounter
-  , getWindowSize OnWindowResize
-  , activeWhen (\model -> model.counter < 5) $ windowResize OnWindowResize
-  , every 1.0 IncrementCounter
-  ]
+subs = [execEvent UsersAsk]
 
 main :: Effect Unit
 main = run { init, view, update, subs }

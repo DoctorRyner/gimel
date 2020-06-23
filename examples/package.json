@@ -2,11 +2,10 @@
   "name": "examples",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "parcel:watch": "spago build --watch",
     "parcel:dev": "parcel static/index.html",
-    "build": "rm -r dist; spago build && parcel build static/index.html --no-source-maps --experimental-scope-hoisting"
+    "build": "rm -r dist; spago build && parcel build static/index.html --no-source-maps"
   },
   "author": "",
   "license": "ISC",

@@ -5,6 +5,7 @@ import Prelude
 import Data.Foldable (fold)
 import Data.Maybe (Maybe)
 import Effect.Aff (Aff)
+import Gimel.Cmd (Cmd)
 import Gimel.Html (Html)
 import Gimel.Sub (Sub)
 
@@ -21,6 +22,7 @@ newtype UpdateM event model =
   Update
     { model :: model
     , affs  :: Array (Aff (Maybe event))
+    , cmds  :: Array (Cmd event)
     }
 
 instance functorUpdate :: Functor (UpdateM event) where
@@ -30,7 +32,7 @@ instance applyUpdate :: Apply (UpdateM event) where
   apply (Update context) upd = context.model <$> upd
 
 instance applicativeUpdate :: Applicative (UpdateM event) where
-  pure model = Update {model, affs: []}
+  pure model = Update {model, affs: [], cmds: []}
 
 instance bindUpdate :: Bind (UpdateM event) where
   bind (Update context) f = f context.model
