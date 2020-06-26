@@ -43,7 +43,6 @@ classFromApp app = React.component "Gimel" constructor
         runCmds next.cmds
 
       runCmds          = traverse_ (\(Cmd x) -> x runEvent)
-      renderHtml state = toReactHtml runEvent $ app.view state.model
 
       collectSubs
         :: Array (Sub model event)
@@ -94,7 +93,7 @@ classFromApp app = React.component "Gimel" constructor
     pure
       { state: {model: app.init}
 
-      , render: renderHtml <$> getState this
+      , render: (\state -> toReactHtml runEvent $ app.view state.model) <$> getState this
 
       , componentDidMount: launchAff_ do
           subs <- initActiveSubs
