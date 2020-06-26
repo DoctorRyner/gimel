@@ -5,8 +5,7 @@ import Prelude
 import Data.Maybe (Maybe(..), maybe)
 import Effect (Effect)
 import Effect.Aff (Aff, Milliseconds(..), delay)
-import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Console as Console
+import Effect.Class (liftEffect)
 import Gimel.Cmd (Cmd(..))
 import Gimel.Types (UpdateM(..), Update)
 
@@ -58,9 +57,3 @@ withCmd model cmd = withCmds model [cmd]
 
 wait :: Number -> Aff Unit
 wait sec = delay $ Milliseconds $ sec * 1000.0
-
-log :: forall m. MonadEffect m => String -> m Unit
-log = liftEffect <<< Console.log
-
-error :: forall m. MonadEffect m => String -> m Unit
-error = liftEffect <<< Console.log
