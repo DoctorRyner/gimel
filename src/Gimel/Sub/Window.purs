@@ -20,7 +20,7 @@ windowResize resizeEvent = mkSubEff \_ runEvent -> do
 
   addEventListener (EventType "resize") listener false $ toEventTarget win
 
-  pure do
+  pure $
     removeEventListener
       (EventType "resize")
       listener
