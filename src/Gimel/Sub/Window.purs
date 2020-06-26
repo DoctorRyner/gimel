@@ -2,14 +2,14 @@ module Gimel.Sub.Window where
 
 import Prelude
 
-import Gimel.Sub (Sub(..), mkActiveSub)
+import Gimel.Sub (Sub, mkSubEff)
 import Web.Event.Event (EventType(..))
 import Web.Event.EventTarget (addEventListener, eventListener, removeEventListener)
 import Web.HTML (window)
 import Web.HTML.Window (innerHeight, innerWidth, toEventTarget)
 
 windowResize :: forall model event. ({height :: Int, width :: Int} -> event) -> Sub model event
-windowResize resizeEvent = mkActiveSub \_ runEvent -> do
+windowResize resizeEvent = mkSubEff \_ runEvent -> do
   win      <- window
   listener <-
     eventListener \_ -> do
@@ -28,9 +28,10 @@ windowResize resizeEvent = mkActiveSub \_ runEvent -> do
       (toEventTarget win)
 
 getWindowSize :: forall model event. ({height :: Int, width :: Int} -> event) -> Sub model event
-getWindowSize getWindowEvent = Once \_ runEvent -> do
+getWindowSize getWindowEvent = mkSubEff \_ runEvent -> do
   win    <- window
   height <- innerHeight win
   width  <- innerWidth win
 
   runEvent $ getWindowEvent {height, width}
+  pure mempty

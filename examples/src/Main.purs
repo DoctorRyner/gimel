@@ -3,50 +3,39 @@ module Main where
 import Prelude hiding (div)
 
 import Data.Foldable (fold)
-import Data.Maybe (Maybe(..))
 import Effect (Effect)
+import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
-import Gimel.Html (Html, h1, text, textS)
-import Gimel.Http (post)
-import Gimel.Sub (Sub)
-import Gimel.Sub.Time (delay)
+import Gimel.Html (Html, button, text, textS)
+import Gimel.Sub (Sub, enableWhen, execEvent)
+import Gimel.Sub.Window (windowResize)
 import Gimel.Types (Update)
 
-type LoginResult =
-  { id :: Int
-  , token :: String
-  }
+data Event = Inc | Dec | OnWindowResize {height :: Int, width :: Int}
 
-data Event = SaveLoginResult LoginResult
-
-type Model =
-  { loginResult :: Maybe LoginResult
-  }
+type Model = {counter :: Int, window :: {height :: Int, width :: Int}}
 
 init :: Model
-init =
-  { loginResult: Nothing
-  }
+init = {counter: 0, window: {height: 0, width: 0}}
 
 view :: Model -> Html Event
-view model = case model.loginResult of
-  Nothing          -> text "Didn't get login result yet! (Wait for 2 seconds)"
-  Just loginResult -> fold [ h1 [] [text "Login result:"]
-                           , textS loginResult
-                           ]
+view model = fold
+  [ button [onClick Inc] [text "+"]
+  , textS model
+  , button [onClick Dec] [text "-"]
+  ]
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  SaveLoginResult loginResult -> pure model {loginResult = Just loginResult}
+  Inc -> pure model {counter = model.counter + 1}
+  Dec -> pure model {counter = model.counter - 1}
+  OnWindowResize window -> pure model {window = window}
 
 subs :: Array (Sub Model Event)
-subs = 
-  [ delay 2.0 $ post "https://reqres.in/api/register"
-                     { email: "eve.holt@reqres.in"
-                     , password: "pistol"
-                     }
-                     SaveLoginResult
+subs =
+  [ enableWhen (\model -> model.counter < 5) $ windowResize OnWindowResize
+  , enableWhen (\model -> model.counter == 5) $ execEvent Inc
   ]
 
 main :: Effect Unit
-main = run { init, view, update, subs }
+main = run {init, view, update, subs}

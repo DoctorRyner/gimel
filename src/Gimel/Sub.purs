@@ -4,50 +4,61 @@ import Prelude
 
 import Data.Foldable (traverse_)
 import Effect (Effect)
-import Effect.Aff (launchAff_)
+import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (logShow)
 import Gimel.Cmd (Cmd(..))
 
 data Sub model event
-  = Once (model -> (event -> Effect Unit) -> Effect Unit)
-  | Always (model -> (event -> Effect Unit) -> Effect Unit)
-  | ActiveWhen (ActiveSubInstance model event)
+  = Sub (SubInstance model event)
+  | Always (model -> Cmd event)
 
-type ActiveSubInstance model event =
-  { check    :: model -> Boolean
-  , activate :: model -> (event -> Effect Unit) -> Effect (Effect Unit)
-  , status   :: ActiveSubStatus
+type SubInstance model event =
+  { checkCondition :: model -> Boolean
+  , enable         :: model -> (event -> Aff Unit) -> Aff (Aff Unit)
+  , status         :: SubStatus
   }
 
-data ActiveSubStatus
-  = Active {stop :: Effect Unit}
+data SubStatus
+  = Active {disable :: Aff Unit}
   | Inactive
 
-mkActiveSub
+mkSub
+  :: forall model event
+  .  (model -> (event -> Aff Unit) -> Aff (Aff Unit))
+  -> Sub model event
+mkSub enable = Sub {checkCondition: const true, enable, status: Inactive}
+
+mkSubEff
   :: forall model event
   .  (model -> (event -> Effect Unit) -> Effect (Effect Unit))
   -> Sub model event
-mkActiveSub activate = ActiveWhen {check: const true, activate, status: Inactive}
+mkSubEff enable =
+  Sub
+    { checkCondition: const true
+    , enable: \model runEvent ->
+        liftEffect <$> liftEffect (enable model (launchAff_ <<< runEvent))
+    , status: Inactive
+    }
 
-activeWhen :: forall model event. (model -> Boolean) -> Sub model event -> Sub model event
-activeWhen check (ActiveWhen x) = ActiveWhen x {check = check}
-activeWhen _ x                  = x
+enableWhen :: forall model event. (model -> Boolean) -> Sub model event -> Sub model event
+enableWhen checkCondition (Sub inst) = Sub inst {checkCondition = checkCondition}
+enableWhen _ x = x
 
 logModel :: forall model event. Show model => Sub model event
-logModel = Always $ const <<< logShow
+logModel = Always $ Cmd <<< const <<< logShow
 
 execEvents :: forall model event. Array event -> Sub model event
-execEvents events = Once \_ runEvent -> traverse_ runEvent events
+execEvents events = mkSub \_ runEvent -> traverse_ runEvent events $> mempty
 
 runCmd :: forall model event. Cmd event -> Sub model event
 runCmd cmd = runCmds [cmd]
 
 runCmds :: forall model event. Array (Cmd event) -> Sub model event
-runCmds cmds = Once \_ runEvent -> do
-  traverse_
-    (\(Cmd cmd) -> launchAff_ $ cmd (liftEffect <<< runEvent))
-    cmds
+runCmds cmds = mkSub \_ runEvent -> do
+  traverse_ (\(Cmd cmd) -> cmd runEvent) cmds
+
+  pure mempty
 
 execEvent :: forall model event. event -> Sub model event
 execEvent e = execEvents [e]

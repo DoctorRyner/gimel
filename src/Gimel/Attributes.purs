@@ -2,7 +2,7 @@ module Gimel.Attributes where
 
 import Prelude
 
-import Effect (Effect)
+import Effect.Aff (Aff, launchAff_)
 import Effect.Uncurried (mkEffectFn1)
 import React.DOM.Props (Props, unsafeMkProps)
 import React.SyntheticEvent (SyntheticEvent)
@@ -23,10 +23,10 @@ attribute k v = Attribute $ unsafeMkProps k v
 
 infix 4 attribute as =:
 
-toReactProp :: forall event. (event -> Effect Unit) -> Attribute event -> Props
+toReactProp :: forall event. (event -> Aff Unit) -> Attribute event -> Props
 toReactProp _ (Attribute prop) = prop
 toReactProp runEvent (AttributeEvent eventName event) =
-  unsafeMkProps eventName $ mkEffectFn1 (runEvent <<< event)
+  unsafeMkProps eventName $ mkEffectFn1 (launchAff_ <<< runEvent <<< event)
 
 -- Events
 

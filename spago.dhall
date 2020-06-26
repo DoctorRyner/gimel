@@ -7,6 +7,7 @@
   , "console"
   , "css"
   , "effect"
+  , "filterable"
   , "js-timers"
   , "ordered-collections"
   , "psci-support"

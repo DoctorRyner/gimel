@@ -7,6 +7,7 @@
   , "console"
   , "css"
   , "effect"
+  , "filterable"
   , "generics-rep"
   , "js-timers"
   , "psci-support"

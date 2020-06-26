@@ -2,21 +2,21 @@ module Gimel.Engine where
 
 import Prelude
 
-import Data.Array (mapMaybe)
-import Data.Either (either)
+import Data.Either (Either(..))
+import Data.Filterable (partitionMap)
 import Data.Foldable (traverse_)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Traversable (traverse)
 import Effect (Effect)
-import Effect.Aff (Aff, launchAff_, runAff_)
+import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)
-import Effect.Console (errorShow, log)
+import Effect.Class.Console (error)
 import Effect.Ref as Ref
 import Gimel.Cmd (Cmd(..))
 import Gimel.Html (Html, toReactHtml)
-import Gimel.Sub (ActiveSubInstance, ActiveSubStatus(..), Sub(..))
+import Gimel.Sub (Sub(..), SubInstance, SubStatus(..))
 import Gimel.Types (Application, UpdateM(..), Update, subsNone)
-import React (Children, ReactClass, ReactElement, createElement, getState, modifyState)
+import React (Children, ReactClass, createElement, getState, modifyState)
 import React (component) as React
 import ReactDOM (render)
 import Web.DOM.NonElementParentNode (getElementById) as DOM
@@ -28,117 +28,88 @@ classFromApp :: forall event model. Application model event -> ReactClass { chil
 classFromApp app = React.component "Gimel" constructor
  where
   constructor this = do
-    let initialModel = app.init
-
-    modelRef <- Ref.new initialModel
+    modelRef <- Ref.new app.init
 
     let
-      runEvent :: event -> Effect Unit
+      runEvent :: event -> Aff Unit
       runEvent event = do
-        model <- Ref.read modelRef
+        model <- liftEffect $ Ref.read modelRef
 
         let Update next = app.update model event
 
-        Ref.write next.model modelRef
-        modifyState this $ \state -> state {model = next.model}
+        liftEffect do
+          Ref.write next.model modelRef
+          modifyState this $ \state -> state {model = next.model}
+
         runAffs next.affs
         runCmds next.cmds
 
-      runMaybeEvent :: Maybe event -> Effect Unit
-      runMaybeEvent x = maybe mempty runEvent x
+      runAffs affs = traverse_ ((=<<) (maybe mempty runEvent)) affs
+      runCmds      = traverse_ (\(Cmd x) -> x runEvent)
 
-      runAffs :: Array (Aff (Maybe event)) -> Effect Unit 
-      runAffs affs = traverse_ (runAff_ $ either (log <<< show) runMaybeEvent) affs
-
-      runCmds :: Array (Cmd event) -> Effect Unit
-      runCmds cmds =
-        traverse_
-          (\(Cmd x) -> launchAff_ $ x (liftEffect <<< runEvent))
-          cmds
-
-      renderHtml :: {model :: model} -> ReactElement
       renderHtml state = toReactHtml runEvent $ app.view state.model
 
-      runOnceSubs :: Array (model -> (event -> Effect Unit) -> Effect Unit) -> Effect Unit
-      runOnceSubs =
-        traverse_
-          (\f -> do
-            state <- getState this
-            f state.model runEvent
-          )
-
-      onceSubs =
-        mapMaybe
+      separatedSubs =
+        partitionMap
           (case _ of
-            Once f -> Just f
-            _      -> Nothing
+            Always f -> Left f
+            Sub    x -> Right x
           )
           app.subs
 
-      alwaysSubs =
-        mapMaybe
-          (case _ of
-            Always f -> Just f
-            _        -> Nothing
-          )
-          app.subs
+      alwaysSubs = separatedSubs.left
+      activeSubs = separatedSubs.right
 
-      activeSubs =
-        mapMaybe
-          (case _ of
-            ActiveWhen x -> Just x
-            _            -> Nothing
-          )
-          app.subs
-
-      updateActiveSub :: ActiveSubInstance model event -> Effect (ActiveSubInstance model event)
+      updateActiveSub :: SubInstance model event -> Aff (SubInstance model event)
       updateActiveSub sub = do
-        currState <- getState this
+        currState <- liftEffect $ getState this
         status    <-
           case sub.status of
-            Active {stop} ->
-              if sub.check currState.model
-              then pure $ Active {stop}
-              else stop $> Inactive
+            Active {disable} ->
+              if sub.checkCondition currState.model
+              then pure sub.status
+              else disable $> Inactive
             Inactive ->
-              if sub.check currState.model
+              if sub.checkCondition currState.model
               then do
-                stop <- sub.activate currState.model runEvent
-                pure $ Active {stop}
+                disable <- sub.enable currState.model runEvent
+                pure $ Active {disable}
               else pure Inactive
 
         pure sub {status = status}
 
-      initActiveSubs :: Effect (Array (ActiveSubInstance model event))
+      initActiveSubs :: Aff (Array (SubInstance model event))
       initActiveSubs =
         traverse
           (\sub ->
-              if sub.check initialModel
+              if sub.checkCondition app.init
               then do
-                stop <- sub.activate initialModel runEvent
-                pure sub {status = Active {stop}}
+                disable <- sub.enable app.init runEvent
+                pure sub {status = Active {disable}}
               else pure sub
           )
           activeSubs
 
-    activeSubsRef <- Ref.new =<< initActiveSubs
+    activeSubsRef <- Ref.new []
 
     pure
-      { state: {model: initialModel}
-      , componentDidMount: runOnceSubs onceSubs
-      , render: do
-          state <- getState this
+      { state: {model: app.init}
 
+      , render: renderHtml <$> getState this
+
+      , componentDidMount: launchAff_ do
+          subs <- initActiveSubs
+          liftEffect $ Ref.write subs activeSubsRef
+
+      , componentDidUpdate: \_ state _ -> launchAff_ do
           -- Perform Always subs
-          traverse_ (\f -> f state.model runEvent) alwaysSubs
+          runCmds $ map (\f -> f state.model) alwaysSubs
 
           -- Update Active subs
-          currActiveSubs    <- Ref.read activeSubsRef
+          currActiveSubs    <- liftEffect $ Ref.read activeSubsRef
           updatedActiveSubs <- traverse updateActiveSub currActiveSubs
 
-          Ref.write updatedActiveSubs activeSubsRef
-
-          pure $ renderHtml state
+          liftEffect $ Ref.write updatedActiveSubs activeSubsRef
       }
 
 run :: forall model event. Application model event -> Effect Unit
@@ -151,7 +122,7 @@ runOn nodeId app = do
 
   case maybeRoot of
     Just root -> render (createElement (classFromApp app) {} []) root *> mempty
-    Nothing   -> errorShow $ "Can't find an element with an id " <> nodeId
+    Nothing   -> error $ "Can't find an element with an id " <> nodeId
 
 pureApp
   :: forall model event
