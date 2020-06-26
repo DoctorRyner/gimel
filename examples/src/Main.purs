@@ -4,11 +4,15 @@ import Prelude hiding (div)
 
 import Data.Foldable (fold)
 import Effect (Effect)
+import Effect.Class.Console (logShow)
+import Effect.Console (log)
 import Gimel.Attributes (onClick)
+import Gimel.Cmd (cmd)
 import Gimel.Engine (run)
 import Gimel.Html (Html, button, text, textS)
 import Gimel.Sub (Sub, none)
 import Gimel.Types (Update)
+import Gimel.Utils (wait, withCmd)
 
 data Event = Inc | Dec
 
@@ -27,7 +31,13 @@ view model = fold
 update :: Model -> Event -> Update Model Event
 update model = case _ of
   Inc -> pure $ model + 1
-  Dec -> pure $ model - 1
+  Dec ->
+    withCmd
+      (model - 1)
+      (cmd do
+        wait 1.0
+        logShow $ model - 1
+      )
 
 subs :: Sub Model Event
 subs = none
