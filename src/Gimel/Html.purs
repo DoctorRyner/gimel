@@ -28,6 +28,9 @@ text = Text
 textS :: forall event a. Show a => a -> Html event
 textS = Text <<< show
 
+textShow :: forall event a. Show a => a -> Html event
+textShow = textS
+
 frag :: forall event. Array (Html event) -> Html event
 frag = Fragment
 
