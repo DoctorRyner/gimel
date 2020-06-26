@@ -10,12 +10,12 @@ import Gimel.Html (Html, button, text, textS)
 import Gimel.Sub (Sub, none)
 import Gimel.Types (Update)
 
-data Event = Inc | Dec | OnWindowResize {height :: Int, width :: Int}
+data Event = Inc | Dec
 
-type Model = {counter :: Int, window :: {height :: Int, width :: Int}}
+type Model = Int
 
 init :: Model
-init = {counter: 0, window: {height: 0, width: 0}}
+init = 0
 
 view :: Model -> Html Event
 view model = fold
@@ -26,10 +26,8 @@ view model = fold
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  Inc -> pure model {counter = model.counter + 1}
-  Dec -> pure model {counter = model.counter - 1}
-
-  OnWindowResize window -> pure model {window = window}
+  Inc -> pure $ model + 1
+  Dec -> pure $ model - 1
 
 subs :: Sub Model Event
 subs = none
