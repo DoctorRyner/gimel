@@ -2,10 +2,9 @@ module Gimel.Engine where
 
 import Prelude
 
-import Data.Either (Either(..))
-import Data.Filterable (partitionMap)
+import Data.Array (cons, uncons)
 import Data.Foldable (traverse_)
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff_)
@@ -14,8 +13,8 @@ import Effect.Class.Console (error)
 import Effect.Ref as Ref
 import Gimel.Cmd (Cmd(..))
 import Gimel.Html (Html, toReactHtml)
-import Gimel.Sub (Sub(..), SubInstance, SubStatus(..))
-import Gimel.Types (Application, UpdateM(..), Update, subsNone)
+import Gimel.Sub (Sub(..), SubInstance, SubStatus(..), none)
+import Gimel.Types (Application, Update, UpdateM(..))
 import React (Children, ReactClass, createElement, getState, modifyState)
 import React (component) as React
 import ReactDOM (render)
@@ -41,24 +40,24 @@ classFromApp app = React.component "Gimel" constructor
           Ref.write next.model modelRef
           modifyState this $ \state -> state {model = next.model}
 
-        runAffs next.affs
         runCmds next.cmds
 
-      runAffs affs = traverse_ ((=<<) (maybe mempty runEvent)) affs
-      runCmds      = traverse_ (\(Cmd x) -> x runEvent)
-
+      runCmds          = traverse_ (\(Cmd x) -> x runEvent)
       renderHtml state = toReactHtml runEvent $ app.view state.model
 
-      separatedSubs =
-        partitionMap
-          (case _ of
-            Always f -> Left f
-            Sub    x -> Right x
-          )
-          app.subs
+      collectSubs
+        :: Array (Sub model event)
+        -> {always :: Array (model -> Cmd event), active :: Array (SubInstance model event)}
+        -> {always :: Array (model -> Cmd event), active :: Array (SubInstance model event)}
+      collectSubs subs res = case uncons subs of
+        Nothing                   -> res
+        Just {head: x , tail: xs} ->
+          case x of
+            Always f        -> collectSubs xs $ res {always = cons f res.always}
+            Sub sub         -> collectSubs xs $ res {active = cons sub res.active}
+            Batch innerSubs -> collectSubs xs $ res <> collectSubs innerSubs mempty
 
-      alwaysSubs = separatedSubs.left
-      activeSubs = separatedSubs.right
+      collectedSubs = collectSubs [app.subs] mempty
 
       updateActiveSub :: SubInstance model event -> Aff (SubInstance model event)
       updateActiveSub sub = do
@@ -88,7 +87,7 @@ classFromApp app = React.component "Gimel" constructor
                 pure sub {status = Active {disable}}
               else pure sub
           )
-          activeSubs
+          collectedSubs.active
 
     activeSubsRef <- Ref.new []
 
@@ -103,7 +102,7 @@ classFromApp app = React.component "Gimel" constructor
 
       , componentDidUpdate: \_ state _ -> launchAff_ do
           -- Perform Always subs
-          runCmds $ map (\f -> f state.model) alwaysSubs
+          runCmds $ map (\f -> f state.model) collectedSubs.always
 
           -- Update Active subs
           currActiveSubs    <- liftEffect $ Ref.read activeSubsRef
@@ -132,7 +131,7 @@ pureApp app =
   { init: app.init
   , update: \model -> pure <<< app.update model
   , view: app.view
-  , subs: subsNone
+  , subs: none
   }
 
 sandbox
@@ -146,5 +145,5 @@ sandbox app =
   { init: app.init
   , update: app.update
   , view: app.view
-  , subs: subsNone
+  , subs: none
   }

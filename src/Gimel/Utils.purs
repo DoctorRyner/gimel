@@ -2,19 +2,24 @@ module Gimel.Utils where
 
 import Prelude
 
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Effect (Effect)
 import Effect.Aff (Aff, Milliseconds(..), delay)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Console as Console
-import Gimel.Cmd (Cmd)
+import Gimel.Cmd (Cmd(..))
 import Gimel.Types (UpdateM(..), Update)
 
 withEvent :: forall model event. model -> event -> Update model event
 withEvent model event = withEvents model [event]
 
 withEvents :: forall model event. model -> Array event -> Update model event
-withEvents model affs = Update {model, affs: map (pure <<< Just) affs, cmds: []}
+withEvents model events =
+  Update
+    { model
+    , cmds: map (\event -> Cmd \runEvent -> runEvent event)
+                events
+    }
 
 withAff :: forall model event. model -> Aff event -> Update model event
 withAff model aff = withAffs model [aff]
@@ -26,22 +31,27 @@ withAffs :: forall model event. model -> Array (Aff event) -> Update model event
 withAffs model = withMaybeAffs model <<< map (map Just)
 
 withMaybeAffs :: forall model event. model -> Array (Aff (Maybe event)) -> Update model event
-withMaybeAffs model affs = Update {model, affs, cmds: []}
+withMaybeAffs model affs =
+  Update
+    { model
+    , cmds: map (\aff -> Cmd \runEvent -> maybe mempty runEvent =<< aff)
+                affs
+    }
 
-withEffect :: forall model event. model -> Effect event -> Update model event
-withEffect model aff = Update {model, affs: [Just <$> liftEffect aff], cmds: []}
+withEff :: forall model event. model -> Effect event -> Update model event
+withEff model eff = withEffs model [eff]
 
-withMaybeEffect :: forall model event. model -> Effect (Maybe event) -> Update model event
-withMaybeEffect model aff = Update {model, affs: [liftEffect aff], cmds: []}
+withMaybeEff :: forall model event. model -> Effect (Maybe event) -> Update model event
+withMaybeEff model eff = withMaybeEffs model [eff]
 
-withEffects :: forall model event. model -> Array (Effect event) -> Update model event
-withEffects model = withMaybeEffects model <<< map (map Just)
+withEffs :: forall model event. model -> Array (Effect event) -> Update model event
+withEffs model = withMaybeEffs model <<< map (map Just)
 
-withMaybeEffects :: forall model event. model -> Array (Effect (Maybe event)) -> Update model event
-withMaybeEffects model = withMaybeAffs model <<< map liftEffect
+withMaybeEffs :: forall model event. model -> Array (Effect (Maybe event)) -> Update model event
+withMaybeEffs model = withMaybeAffs model <<< map liftEffect
 
 withCmds :: forall model event. model -> Array (Cmd event) -> Update model event
-withCmds model cmds = Update {model, affs: [], cmds}
+withCmds model cmds = Update {model, cmds}
 
 withCmd :: forall model event. model -> Cmd event -> Update model event
 withCmd model cmd = withCmds model [cmd]

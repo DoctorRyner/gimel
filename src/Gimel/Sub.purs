@@ -12,6 +12,13 @@ import Gimel.Cmd (Cmd(..))
 data Sub model event
   = Sub (SubInstance model event)
   | Always (model -> Cmd event)
+  | Batch (Array (Sub model event))
+
+instance semigroupSub :: Semigroup (Sub model event) where
+  append x y = Batch [x, y]
+
+instance monoidSub :: Monoid (Sub model event) where
+  mempty = Batch []
 
 type SubInstance model event =
   { checkCondition :: model -> Boolean
@@ -22,6 +29,9 @@ type SubInstance model event =
 data SubStatus
   = Active {disable :: Aff Unit}
   | Inactive
+
+none :: forall model event. Sub model event
+none = Batch []
 
 mkSub
   :: forall model event
