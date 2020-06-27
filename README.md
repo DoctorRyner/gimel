@@ -1,5 +1,7 @@
 # Gimel
 
+# BETA RELEASE IS SOON!
+
 ## What is this?
 
 This is an Elm-like UI library with power of React. Elm is great but it doesn't have that much widgets and ready-to-use solutions as React. Also PureScript is just much more powerful than Elm. I wanted to make this library as easy-to-use as Elm but with much greater potential
