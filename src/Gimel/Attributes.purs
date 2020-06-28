@@ -12,6 +12,11 @@ data Attribute event
   = Attribute Props
   | AttributeEvent String (SyntheticEvent -> event)
 
+instance functoAttribute :: Functor Attribute where
+  map f = case _ of
+    Attribute      props -> Attribute props
+    AttributeEvent str e -> AttributeEvent str $ f <<< e
+
 on :: forall event. String -> event -> Attribute event
 on eventName = AttributeEvent ("on" <> eventName) <<< const
 

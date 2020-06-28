@@ -2,6 +2,7 @@ module Gimel.Sub where
 
 import Prelude
 
+import Data.Bifunctor (class Bifunctor, bimap)
 import Data.Foldable (traverse_)
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff_)
@@ -19,6 +20,26 @@ instance semigroupSub :: Semigroup (Sub model event) where
 
 instance monoidSub :: Monoid (Sub model event) where
   mempty = Batch []
+
+instance functorSub :: Functor (Sub model) where
+  map f = case _ of
+    Sub inst ->
+      Sub $ inst
+        { enable = \model runEvent ->
+            inst.enable model $ runEvent <<< f
+        }
+    Always runSub -> Always \model -> f <$> runSub model
+    Batch subs -> Batch $ map f <$> subs
+
+instance bifunctor :: Bifunctor Sub where
+  bimap fModel fEvent = case _ of
+    Batch subs -> Batch $ bimap fModel fEvent <$> subs
+    Always runSub -> Always \model -> fEvent <$> runSub (fModel model)
+    Sub inst ->
+      Sub $ inst
+        { enable = \model runEvent ->
+            inst.enable (fModel model) (runEvent <<< fEvent)
+        }
 
 type SubInstance model event =
   { checkCondition :: model -> Boolean

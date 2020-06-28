@@ -2,44 +2,42 @@ module Main where
 
 import Prelude hiding (div)
 
+import Component.Counter as Counter
 import Data.Foldable (fold)
 import Effect (Effect)
-import Effect.Class.Console (logShow)
-import Gimel.Attributes (onClick)
-import Gimel.Cmd (cmd)
 import Gimel.Engine (run)
-import Gimel.Html (Html, button, text, textS)
+import Gimel.Html (Html, h1, text)
 import Gimel.Sub (Sub, none)
-import Gimel.Types (Update)
-import Gimel.Utils (wait, withCmd)
+import Gimel.Types (Update, UpdateM(..))
+import Gimel.Utils (withCmds)
 
-data Event = Inc | Dec
+data Event = Counter Counter.Event
 
-type Model = Int
+type Model =
+  { counter :: Counter.Model
+  }
 
 init :: Model
-init = 0
+init =
+  { counter: 0
+  }
 
 view :: Model -> Html Event
 view model = fold
-  [ button [onClick Inc] [text "+"]
-  , textS model
-  , button [onClick Dec] [text "-"]
+  [ h1 [] [text "Counters:"]
+  , Counter <$> Counter.view model.counter
   ]
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  Inc -> pure $ model + 1
-  Dec ->
-    withCmd
-      (model - 1)
-      (cmd do
-        wait 1.0
-        logShow $ model - 1
-      )
+  Counter event ->
+    let Update next = Counter.update model.counter event
+     in withCmds
+        (model { counter = next.model })
+        (map Counter <$> next.cmds)
 
 subs :: Sub Model Event
-subs = none
+subs = map Counter Counter.subs
 
 main :: Effect Unit
 main = run {init, view, update, subs}

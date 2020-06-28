@@ -9,6 +9,9 @@ import Effect.Class (liftEffect)
 
 newtype Cmd event = Cmd ((event -> Aff Unit) -> Aff Unit)
 
+instance functorCmd :: Functor Cmd where
+  map f (Cmd runCmd) = Cmd \runEvent -> runCmd $ runEvent <<< f
+
 execEventCmd :: forall event. event -> Cmd event
 execEventCmd event = execEventsCmd [event]
 
