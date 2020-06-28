@@ -6,7 +6,7 @@ import Data.Foldable (fold)
 import Effect.Class.Console (logShow)
 import Gimel.Attributes (onClick)
 import Gimel.Cmd (cmd, execEventCmd)
-import Gimel.Html (Html, button, text, textS)
+import Gimel.Html (Html, br, button, text, textS)
 import Gimel.Sub (Sub, enableWhen)
 import Gimel.Sub.Time (every)
 import Gimel.Types (Update, Application)
@@ -21,6 +21,7 @@ view model = fold
   [ button [onClick Inc] [text "+"]
   , textS model
   , button [onClick Dec] [text "-"]
+  , br
   ]
 
 update :: Model -> Event -> Update Model Event
