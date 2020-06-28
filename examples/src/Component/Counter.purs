@@ -9,7 +9,7 @@ import Gimel.Cmd (cmd, execEventCmd)
 import Gimel.Html (Html, button, text, textS)
 import Gimel.Sub (Sub, enableWhen)
 import Gimel.Sub.Time (every)
-import Gimel.Types (Update)
+import Gimel.Types (Update, Application)
 import Gimel.Utils (withCmd)
 
 data Event = Inc | Dec
@@ -33,3 +33,6 @@ update model = case _ of
 
 subs :: Sub Model Event
 subs = enableWhen (\model -> model < 4) $ every 1.0 (execEventCmd Inc)
+
+app :: Application Model Event
+app = {init: 0, view, update, subs}

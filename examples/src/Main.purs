@@ -2,43 +2,45 @@ module Main where
 
 import Prelude hiding (div)
 
+import Component.Counter as Counter
 import Data.Foldable (fold)
 import Effect (Effect)
+import Gimel.Component (Component, display, new, relay)
 import Gimel.Engine (run)
 import Gimel.Html (Html, h1, text)
 import Gimel.Sub (Sub, connect)
-import Gimel.Types (Update, UpdateM(..))
-import Gimel.Utils (withCmds)
+import Gimel.Types (Update)
 
-import Component.Counter as Counter
-
-data Event = Counter Counter.Event
+data Event = Counter1 Counter.Event | Counter2 Counter.Event
 
 type Model =
-  { counter :: Counter.Model
+  { counter1 :: Component Counter.Model Counter.Event Event
+  , counter2 :: Component Counter.Model Counter.Event Event
   }
 
 init :: Model
 init =
-  { counter: 0
+  { counter1: new Counter1 Counter.app
+  , counter2: new Counter2 Counter.app
   }
 
 view :: Model -> Html Event
 view model = fold
   [ h1 [] [text "Counter Component"]
-  , map Counter $ Counter.view model.counter
+  , display model.counter1
+  , display model.counter2
   ]
 
 update :: Model -> Event -> Update Model Event
 update model = case _ of
-  Counter event ->
-    let Update counter = Counter.update model.counter event
-     in withCmds
-        (model {counter = counter.model})
-        (map (map Counter) counter.cmds)
+  Counter1 event -> relay event (\x -> model {counter1 = x}) model.counter1
+  Counter2 event -> relay event (\x -> model {counter2 = x}) model.counter2
 
 subs :: Sub Model Event
-subs = connect (\model -> model.counter) Counter Counter.subs
+subs = fold
+  [ connect (\model -> model.counter1.app.init) Counter1 Counter.subs
+  , connect (\model -> model.counter2.app.init) Counter2 Counter.subs
+  ]
 
 main :: Effect Unit
 main = run {init, view, update, subs}
