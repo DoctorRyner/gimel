@@ -7,7 +7,7 @@ import Effect.Class.Console (logShow)
 import Gimel.Attributes (onClick)
 import Gimel.Cmd (cmd, execEventCmd)
 import Gimel.Html (Html, button, text, textS)
-import Gimel.Sub (Sub)
+import Gimel.Sub (Sub, enableWhen)
 import Gimel.Sub.Time (every)
 import Gimel.Types (Update)
 import Gimel.Utils (withCmd)
@@ -32,4 +32,4 @@ update model = case _ of
       (cmd $ logShow model)
 
 subs :: Sub Model Event
-subs = every 1.0 $ execEventCmd Inc
+subs = enableWhen (\model -> model < 4) $ every 1.0 (execEventCmd Inc)

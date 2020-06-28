@@ -2,7 +2,6 @@ module Gimel.Sub where
 
 import Prelude
 
-import Data.Bifunctor (class Bifunctor, bimap)
 import Data.Foldable (traverse_)
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff_)
@@ -31,15 +30,23 @@ instance functorSub :: Functor (Sub model) where
     Always runSub -> Always \model -> f <$> runSub model
     Batch subs -> Batch $ map f <$> subs
 
-instance bifunctor :: Bifunctor Sub where
-  bimap fModel fEvent = case _ of
-    Batch subs -> Batch $ bimap fModel fEvent <$> subs
-    Always runSub -> Always \model -> fEvent <$> runSub (fModel model)
-    Sub inst ->
-      Sub $ inst
-        { enable = \model runEvent ->
-            inst.enable (fModel model) (runEvent <<< fEvent)
-        }
+connect
+  :: forall model1 model2 event1 event2
+  .  (model2 -> model1)
+  -> (event1 -> event2)
+  -> Sub model1 event1
+  -> Sub model2 event2
+connect fModel fEvent = mapSubModel fModel <<< map fEvent
+
+mapSubModel :: forall model1 model2 event. (model2 -> model1) -> Sub model1 event -> Sub model2 event
+mapSubModel f = case _ of
+  Batch xs -> Batch $ map (mapSubModel f) xs
+  Always runSub -> Always \model -> runSub $ f model
+  Sub inst ->
+    Sub $ inst
+      { checkCondition = \model -> inst.checkCondition $ f model
+      , enable = \model runEvent -> inst.enable (f model) runEvent
+      }
 
 type SubInstance model event =
   { checkCondition :: model -> Boolean
