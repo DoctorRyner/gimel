@@ -2,9 +2,11 @@ module Main where
 
 import Prelude hiding (div)
 
+import Data.Foldable (fold)
 import Effect (Effect)
+import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
-import Gimel.Html (Html, text)
+import Gimel.Html (Html, button, text, textS)
 import Gimel.Sub (Sub, none)
 import Gimel.Types (Update)
 
@@ -16,7 +18,11 @@ init :: Model
 init = {counter: 0}
 
 view :: Model -> Html Event
-view model = text "Hello, World!"
+view model = fold
+  [ button [onClick Inc] [text "+"]
+  , textS model
+  , button [onClick Dec] [text "-"]
+  ]
 
 update :: Model -> Event -> Update Model Event
 update model event = case event of
