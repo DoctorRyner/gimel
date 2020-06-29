@@ -5,7 +5,6 @@
   , "argonaut"
   , "argonaut-codecs"
   , "console"
-  , "css"
   , "effect"
   , "filterable"
   , "js-timers"
