@@ -33,7 +33,9 @@ update model = case _ of
       (cmd $ logShow model)
 
 subs :: Sub Model Event
-subs = enableWhen (\model -> model < 4) $ every 1.0 (execEventCmd Inc)
+subs =
+  -- enableWhen (\model -> model < 4) $
+  every 1.0 (execEventCmd Inc)
 
 app :: Application Model Event
 app = {init: 0, view, update, subs}
