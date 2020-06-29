@@ -1,6 +1,9 @@
 # Gimel
 
-# ALPHA RELEASE IS SOON!
+# ALPHA RELEASE IS OUT!
+Now I'm goint to build some infrastructure, first step to make a website with documentation, you can follow my progress here https://github.com/DoctorRyner/gimel.io
+
+Also, it can be a good example of Gimel's usage
 
 ## What is this?
 
