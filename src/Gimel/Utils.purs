@@ -2,7 +2,8 @@ module Gimel.Utils where
 
 import Prelude
 
-import Data.Maybe (Maybe(..), maybe)
+import CSS (CSS, fromString, prefixed, render, renderedInline)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Effect (Effect)
 import Effect.Aff (Aff, Milliseconds(..), delay)
 import Effect.Class (liftEffect)
@@ -57,3 +58,11 @@ withCmd model cmd = withCmds model [cmd]
 
 wait :: Number -> Aff Unit
 wait sec = delay $ Milliseconds $ sec * 1000.0
+
+custom :: String -> String -> CSS
+custom = prefixed <<< fromString
+
+infix 4 custom as |:
+
+renderCSS :: CSS -> String
+renderCSS = fromMaybe "<!INVALID-CSS!>" <<< renderedInline <<< render

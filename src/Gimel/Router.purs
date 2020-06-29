@@ -3,7 +3,7 @@ module Gimel.Router where
 import CSS (CSS)
 import Gimel.Attributes (Attribute, (=:))
 import Gimel.Html (Html, react)
-import Gimel.Html.Styled (renderCSS)
+import Gimel.Utils (renderCSS)
 import React (ReactClass)
 
 foreign import classRouter :: forall a. ReactClass a
