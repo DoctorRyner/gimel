@@ -1,6 +1,6 @@
 # Gimel
 
-# BETA RELEASE IS SOON!
+# ALPHA RELEASE IS SOON!
 
 ## What is this?
 
