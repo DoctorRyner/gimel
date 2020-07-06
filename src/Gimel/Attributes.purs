@@ -45,22 +45,22 @@ onDoubleClick :: forall event. event -> Attribute event
 onDoubleClick = on "DoubleClick"
 
 onMouseDown :: forall event. event -> Attribute event
-onMouseDown = on "onMouseDown"
+onMouseDown = on "MouseDown"
 
 onMouseUp :: forall event. event -> Attribute event
-onMouseUp = on "onMouseUp"
+onMouseUp = on "MouseUp"
 
 onMouseEnter :: forall event. event -> Attribute event
-onMouseEnter = on "onMouseEnter"
+onMouseEnter = on "MouseEnter"
 
 onMouseLeave :: forall event. event -> Attribute event
-onMouseLeave = on "onMouseLeave"
+onMouseLeave = on "MouseLeave"
 
 onMouseOver :: forall event. event -> Attribute event
-onMouseOver = on "onMouseOver"
+onMouseOver = on "MouseOver"
 
 onMouseOut :: forall event. event -> Attribute event
-onMouseOut = on "onMouseOut"
+onMouseOut = on "MouseOut"
 
 onChange :: forall event. (String -> event) -> Attribute event
 onChange f = on_ "Change" \e -> f (targetOf e).value
