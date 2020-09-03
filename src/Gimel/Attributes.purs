@@ -69,14 +69,14 @@ onMouseOver = on "MouseOver"
 onMouseOut :: forall event. event -> Attribute event
 onMouseOut = on "MouseOut"
 
--- onChange :: forall event. (String -> event) -> Attribute event
--- onChange f = on' "Change" \e -> f (targetOf e).value
+onChange :: forall event. (String -> event) -> Attribute event
+onChange f = on' "Change" \e -> Cmd \runEvent -> runEvent $ f (targetOf e).value
 
--- onInput :: forall event. (String -> event) -> Attribute event
--- onInput f = on' "Input" \e -> f (targetOf e).value
+onInput :: forall event. (String -> event) -> Attribute event
+onInput f = on' "Input" \e -> Cmd \runEvent -> runEvent $ f (targetOf e).value
 
--- onCheck :: forall event. (Boolean -> event) -> Attribute event
--- onCheck f = on' "Check" \e -> f (targetOf e).checked
+onCheck :: forall event. (Boolean -> event) -> Attribute event
+onCheck f = on' "Check" \e -> Cmd \runEvent -> runEvent $ f (targetOf e).checked
 
 onSubmit :: forall event. event -> Attribute event
 onSubmit = on "Submit"
