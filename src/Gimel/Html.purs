@@ -28,6 +28,14 @@ instance semigroupHtml :: Semigroup (Html event) where
 instance monoidHtml :: Monoid (Html event) where
   mempty = Fragment []
 
+instance functorHtml :: Functor Html where
+  map f = case _ of
+    Fragment xs -> Fragment $ map (map f) xs
+    ReactNode reactEl attrs childs -> ReactNode reactEl (map (map f) attrs) $ map (map f) childs
+    Text t -> Text t
+    RawElement r -> RawElement r
+    WithHooks m -> WithHooks $ map (map f) m
+
 text :: forall event. String -> Html event
 text = Text
 
