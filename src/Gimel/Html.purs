@@ -2,32 +2,31 @@ module Gimel.Html where
 
 import Prelude
 
-import Data.Foldable (fold)
+import Data.Array (cons)
+import Data.Traversable (traverse)
+import Effect (Effect)
 import Effect.Aff (Aff)
 import Gimel.Attributes (Attribute, toReactProp)
-import React (Children, ReactClass, ReactElement, unsafeCreateElement)
+import React (Children, ReactClass, ReactElement, fragment, unsafeCreateElement)
 import React.DOM (IsDynamic(..), mkDOM)
 import React.DOM (text) as DOM
 import React.DOM.Props (Props, unsafeFromPropsArray)
 
 data Html event
-  = Html ReactEl (Array (Attribute event)) (Array (Html event))
-  | Text String
+  = Text String
+  | RawElement ReactElement
+  | WithHooks (Effect (Html event))
   | Fragment (Array (Html event))
-  | RawReact ReactElement
+  | ReactNode ReactEl (Array (Attribute event)) (Array (Html event))
 
 instance semigroupHtml :: Semigroup (Html event) where
-  append x y = Fragment [x, y]
+  append (Fragment xs) (Fragment ys) = Fragment $ xs <> ys
+  append (Fragment xs)           y   = Fragment $ cons y xs
+  append           x   (Fragment ys) = Fragment $ cons x ys
+  append           x             y   = Fragment [x, y]
 
 instance monoidHtml :: Monoid (Html event) where
   mempty = Fragment []
-
-instance functorHtml :: Functor Html where
-  map f = case _ of
-    Text t -> Text t
-    Fragment xs -> Fragment $ map (map f) xs
-    RawReact r -> RawReact r
-    Html reactEl attrs childs -> Html reactEl (map (map f) attrs) $ map (map f) childs
 
 text :: forall event. String -> Html event
 text = Text
@@ -41,23 +40,26 @@ textShow = textS
 frag :: forall event. Array (Html event) -> Html event
 frag = Fragment
 
-reactNodeFromTag :: String -> Array Props -> Array ReactElement -> ReactElement
-reactNodeFromTag = mkDOM (IsDynamic false)
+withHooks :: forall event. Effect (Html event) -> Html event
+withHooks = WithHooks
+
+reactElementFromTag :: String -> Array Props -> Array ReactElement -> ReactElement
+reactElementFromTag = mkDOM (IsDynamic false)
 
 el :: forall event. String -> Array (Attribute event) -> Array (Html event) -> Html event
-el tagName = Html (reactNodeFromTag tagName)
+el tagName = ReactNode (reactElementFromTag tagName)
 
 el_ :: forall event. String -> Array (Attribute event) -> Html event -> Html event
-el_ tagName attrs child = Html (reactNodeFromTag tagName) attrs [child]
+el_ tagName attrs child = ReactNode (reactElementFromTag tagName) attrs [child]
 
 el' :: forall event. String -> Array (Html event) -> Html event
-el' tagName = Html (reactNodeFromTag tagName) []
+el' tagName = ReactNode (reactElementFromTag tagName) []
 
 elAttrs :: String -> ElAttrs
 elAttrs tagName attrs = el tagName attrs []
 
 raw :: forall event. ReactElement -> Html event
-raw = RawReact
+raw = RawElement
 
 react
   :: forall props event
@@ -65,15 +67,17 @@ react
   -> Array (Attribute event)
   -> Array (Html event)
   -> Html event
-react class_ = Html (unsafeCreateElement class_ <<< unsafeFromPropsArray)
+react class_ = ReactNode (unsafeCreateElement class_ <<< unsafeFromPropsArray)
 
-toReactHtml :: forall event. (event -> Aff Unit) -> Html event -> ReactElement
-toReactHtml runEvent = case _ of
-  Text str                  -> DOM.text str
-  RawReact element          -> element
-  Fragment htmls            -> fold $ map (toReactHtml runEvent) htmls
-  Html element attrs childs -> element (map (toReactProp runEvent) attrs)
-                                       (map (toReactHtml runEvent) childs)
+toReactElement :: forall event. (event -> Aff Unit) -> Html event -> Effect ReactElement
+toReactElement runEvent = case _ of
+  RawElement x                    -> pure x
+  Text       str                  -> pure $ DOM.text str
+  WithHooks  f                    -> toReactElement runEvent =<< f
+  Fragment   xs                   -> unsafeCreateElement fragment {}
+                                       <$> traverse (toReactElement runEvent) xs
+  ReactNode  element attrs childs -> element (map (toReactProp runEvent) attrs)
+                                       <$> traverse (toReactElement runEvent) childs
 
 -- Shortcut types
 type El      = forall event. Array (Attribute event) -> Array (Html event) -> Html event

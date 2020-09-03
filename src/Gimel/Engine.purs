@@ -12,7 +12,7 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (error)
 import Effect.Ref as Ref
 import Gimel.Cmd (Cmd(..))
-import Gimel.Html (Html, toReactHtml)
+import Gimel.Html (Html, toReactElement)
 import Gimel.Sub (Sub(..), SubInstance, SubStatus(..), none)
 import Gimel.Types (Application, Update, UpdateM(..))
 import React (Children, ReactClass, createElement, getState, modifyState)
@@ -42,7 +42,7 @@ classFromApp app = React.component "Gimel" constructor
 
         runCmds next.cmds
 
-      runCmds          = traverse_ (\(Cmd x) -> x runEvent)
+      runCmds = traverse_ (\(Cmd x) -> x runEvent)
 
       collectSubs
         :: Array (Sub model event)
@@ -93,7 +93,7 @@ classFromApp app = React.component "Gimel" constructor
     pure
       { state: {model: app.init}
 
-      , render: (\state -> toReactHtml runEvent $ app.view state.model) <$> getState this
+      , render: getState this >>= \state -> toReactElement runEvent $ app.view state.model
 
       , componentDidMount: launchAff_ do
           subs <- initActiveSubs

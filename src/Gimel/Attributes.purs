@@ -4,24 +4,23 @@ import Prelude
 
 import Effect.Aff (Aff, launchAff_)
 import Effect.Uncurried (mkEffectFn1)
+import Gimel.Cmd (Cmd(..))
 import React.DOM.Props (Props, unsafeMkProps)
 import React.SyntheticEvent (SyntheticEvent)
 import Unsafe.Coerce (unsafeCoerce)
 
 data Attribute event
   = Attribute Props
-  | AttributeEvent String (SyntheticEvent -> event)
-
-instance functoAttribute :: Functor Attribute where
-  map f = case _ of
-    Attribute      props -> Attribute props
-    AttributeEvent str e -> AttributeEvent str $ f <<< e
+  | AttributeEvent String (SyntheticEvent -> Cmd event)
 
 on :: forall event. String -> event -> Attribute event
-on eventName = AttributeEvent ("on" <> eventName) <<< const
+on eventName e = AttributeEvent ("on" <> eventName) $ const (Cmd \runEvent -> runEvent e)
 
-on_ :: forall event. String -> (SyntheticEvent -> event) -> Attribute event
-on_ eventName f = AttributeEvent ("on" <> eventName) f
+on_ :: forall event. String -> Cmd event -> Attribute event
+on_ eventName = AttributeEvent ("on" <> eventName) <<< const
+
+on' :: forall event. String -> (SyntheticEvent -> Cmd event) -> Attribute event
+on' eventName = AttributeEvent ("on" <> eventName)
 
 attribute :: forall event propValue. String -> propValue -> Attribute event
 attribute k v = Attribute $ unsafeMkProps k v
@@ -29,14 +28,17 @@ attribute k v = Attribute $ unsafeMkProps k v
 infix 4 attribute as =:
 
 toReactProp :: forall event. (event -> Aff Unit) -> Attribute event -> Props
+toReactProp runEvent (AttributeEvent eventName eventF) =
+  unsafeMkProps eventName $ mkEffectFn1 (launchAff_ <<< (\(Cmd f) -> f runEvent) <<< eventF)
 toReactProp _ (Attribute prop) = prop
-toReactProp runEvent (AttributeEvent eventName event) =
-  unsafeMkProps eventName $ mkEffectFn1 (launchAff_ <<< runEvent <<< event)
 
 -- Events
 
-targetOf :: forall a b. a -> b
+targetOf :: forall a. SyntheticEvent -> a
 targetOf e = (unsafeCoerce e).target
+
+currentTargetOf :: forall a. SyntheticEvent -> a
+currentTargetOf e = (unsafeCoerce e).target
 
 onClick :: forall event. event -> Attribute event
 onClick = on "Click"
@@ -62,14 +64,14 @@ onMouseOver = on "MouseOver"
 onMouseOut :: forall event. event -> Attribute event
 onMouseOut = on "MouseOut"
 
-onChange :: forall event. (String -> event) -> Attribute event
-onChange f = on_ "Change" \e -> f (targetOf e).value
+-- onChange :: forall event. (String -> event) -> Attribute event
+-- onChange f = on' "Change" \e -> f (targetOf e).value
 
-onInput :: forall event. (String -> event) -> Attribute event
-onInput f = on_ "Input" \e -> f (targetOf e).value
+-- onInput :: forall event. (String -> event) -> Attribute event
+-- onInput f = on' "Input" \e -> f (targetOf e).value
 
-onCheck :: forall event. (Boolean -> event) -> Attribute event
-onCheck f = on_ "Check" \e -> f (targetOf e).checked
+-- onCheck :: forall event. (Boolean -> event) -> Attribute event
+-- onCheck f = on' "Check" \e -> f (targetOf e).checked
 
 onSubmit :: forall event. event -> Attribute event
 onSubmit = on "Submit"
