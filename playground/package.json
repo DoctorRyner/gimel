@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "parcel:watch": "spago build --watch",
-    "parcel:dev": "parcel static/index.html",
-    "build": "rm -r dist; spago build && parcel build static/index.html --no-source-maps"
+    "watch": "spago build --watch",
+    "start": "parcel static/index.html",
+    "release": "rm -r dist; spago build && parcel build static/index.html --no-source-maps"
   },
   "author": "",
   "license": "ISC",
