@@ -6,7 +6,7 @@ import Data.Foldable (fold)
 import Effect (Effect)
 import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
-import Gimel.Html (Html, button, text, textS)
+import Gimel.Html (Html, button, text, textS, useEffectTest, withHooks)
 import Gimel.Sub (Sub, none)
 import Gimel.Types (Update)
 
@@ -18,11 +18,14 @@ init :: Model
 init = {counter: 0}
 
 view :: Model -> Html Event
-view model = fold
-  [ button [onClick Inc] [text "+"]
-  , textS model
-  , button [onClick Dec] [text "-"]
-  ]
+view model = withHooks do
+  useEffectTest
+
+  pure $ fold
+    [ button [onClick Inc] [text "+"]
+    , textS model
+    , button [onClick Dec] [text "-"]
+    ]
 
 update :: Model -> Event -> Update Model Event
 update model event = case event of
