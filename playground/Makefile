@@ -2,12 +2,12 @@ def:
 	make -j dev watch
 
 init:
-	npm i -g purescript spago
-	npm i
+	yarn add global purescript spago
+	yarn
 	spago build
 
 dev:
-	npm run parcel:dev
+	yarn start
 
 watch:
-	npm run parcel:watch
+	yarn watch
