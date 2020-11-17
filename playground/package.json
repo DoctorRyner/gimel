@@ -1,6 +1,6 @@
 {
   "name": "examples",
-  "version": "1.0.0",
+  "license": "MIT",
   "description": "",
   "scripts": {
     "watch": "spago build --watch",

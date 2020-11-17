@@ -1,5 +1,7 @@
 {
   "name": "gimel-core",
+  "version": "0.1@beta",
+  "license": "MIT",
   "description": "",
   "main": "index.js",
   "directories": {
