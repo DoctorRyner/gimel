@@ -3,7 +3,6 @@ module Gimel.Html where
 import Prelude
 
 import Data.Array (cons)
-import Data.Int (even)
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Aff (Aff)
@@ -78,15 +77,11 @@ react
   -> Html event
 react class_ = ReactNode (unsafeCreateElement class_ <<< unsafeFromPropsArray)
 
-foreign import useEffectTest :: Effect Unit
-foreign import inFC :: forall event. Effect (Html event) -> Effect (Html event)
-foreign import testComp :: Effect ReactElement
-
 toReactElement :: forall event. (event -> Aff Unit) -> Html event -> Effect ReactElement
 toReactElement runEvent = case _ of
   RawElement x                    -> pure x
   Text       str                  -> pure $ DOM.text str
-  WithHooks  f                    -> testComp -- inFC (toReactElement runEvent =<< f)
+  WithHooks  f                    -> toReactElement runEvent =<< f
   Fragment   xs                   -> unsafeCreateElement fragment {}
                                        <$> traverse (toReactElement runEvent) xs
   ReactNode  element attrs childs -> element (map (toReactProp runEvent) attrs)

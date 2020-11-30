@@ -6,7 +6,8 @@ import Data.Foldable (fold)
 import Effect (Effect)
 import Gimel.Attributes (onClick)
 import Gimel.Engine (run)
-import Gimel.Html (Html, button, text, textS, useEffectTest, withHooks)
+import Gimel.Html (Html, button, text, textS, withHooks)
+import Gimel.React.Router (useLocation)
 import Gimel.Sub (Sub, none)
 import Gimel.Types (Update)
 
@@ -19,7 +20,7 @@ init = {counter: 0}
 
 view :: Model -> Html Event
 view model = withHooks do
-  useEffectTest
+  location <- useLocation
 
   pure $ fold
     [ button [onClick Inc] [text "+"]

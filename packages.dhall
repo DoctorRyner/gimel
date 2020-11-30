@@ -3,6 +3,12 @@ let upstream =
 
 let overrides = {=}
 
-let additions = {=}
+let additions =
+    { gimel-router =
+        { dependencies = [ "prelude" ]
+        , repo         = "https://github.com/DoctorRyner/gimel-router"
+        , version      = "cc667aa7da6a16826c5c9a476c164eb0c72125ce"
+        }
+    }
 
 in  upstream // overrides // additions

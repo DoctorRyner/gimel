@@ -9,6 +9,7 @@
   , "effect"
   , "filterable"
   , "generics-rep"
+  , "gimel-router"
   , "js-timers"
   , "psci-support"
   , "react"
