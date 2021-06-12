@@ -13,7 +13,7 @@ data Attribute event
   = Attribute Props
   | AttributeEvent String (SyntheticEvent -> Cmd event)
 
-instance functorAttribute :: Functor Attribute where
+instance Functor Attribute where
   map f = case _ of
     Attribute      props -> Attribute props
     AttributeEvent str e -> AttributeEvent str $ (map f) <<< e

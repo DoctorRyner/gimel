@@ -22,19 +22,19 @@ newtype UpdateM event model =
     , cmds  :: Array (Cmd event)
     }
 
-instance functorUpdate :: Functor (UpdateM event) where
+instance Functor (UpdateM event) where
   map f (Update context) = Update context {model = f context.model}
 
-instance applyUpdate :: Apply (UpdateM event) where
+instance Apply (UpdateM event) where
   apply (Update context) upd = context.model <$> upd
 
-instance applicativeUpdate :: Applicative (UpdateM event) where
+instance Applicative (UpdateM event) where
   pure model = Update {model, cmds: []}
 
-instance bindUpdate :: Bind (UpdateM event) where
+instance Bind (UpdateM event) where
   bind (Update context) f = f context.model
 
-instance monadUpdate :: Monad (UpdateM event)
+instance Monad (UpdateM event)
 
 viewNone :: forall model event. model -> Html event
 viewNone _ = fold []

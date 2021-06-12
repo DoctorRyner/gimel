@@ -14,7 +14,7 @@ newtype Component model event1 event2 = Component
   , app :: Application model event1
   }
 
-instance showComponent :: Show model => Show (Component model event1 event2) where
+instance Show model => Show (Component model event1 event2) where
   show x = "Component (" <> show (getModel x) <> ")"
 
 getModel :: forall model event1 event2. Component model event1 event2 -> model
@@ -50,7 +50,7 @@ data Box model event1 event2 =
     , idRatio :: Int
     }
 
-instance showBox :: Show model => Show (Box model event1 event2) where
+instance Show model => Show (Box model event1 event2) where
   show (Box x) = "Box (" <> show x.items <> ", idRatio: " <> show x.idRatio <> ")"
 
 type BoxItem model =

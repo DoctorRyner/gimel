@@ -14,13 +14,13 @@ data Sub model event
   | Always (model -> Cmd event)
   | Batch (Array (Sub model event))
 
-instance semigroupSub :: Semigroup (Sub model event) where
+instance Semigroup (Sub model event) where
   append x y = Batch [x, y]
 
-instance monoidSub :: Monoid (Sub model event) where
+instance Monoid (Sub model event) where
   mempty = Batch []
 
-instance functorSub :: Functor (Sub model) where
+instance Functor (Sub model) where
   map f = case _ of
     Sub inst ->
       Sub $ inst

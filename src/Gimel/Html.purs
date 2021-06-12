@@ -19,16 +19,16 @@ data Html event
   | Fragment (Array (Html event))
   | ReactNode ReactEl (Array (Attribute event)) (Array (Html event))
 
-instance semigroupHtml :: Semigroup (Html event) where
+instance Semigroup (Html event) where
   append (Fragment xs) (Fragment ys) = Fragment $ xs <> ys
   append (Fragment xs)           y   = Fragment $ cons y xs
   append           x   (Fragment ys) = Fragment $ cons x ys
   append           x             y   = Fragment [x, y]
 
-instance monoidHtml :: Monoid (Html event) where
+instance Monoid (Html event) where
   mempty = Fragment []
 
-instance functorHtml :: Functor Html where
+instance Functor Html where
   map f = case _ of
     Fragment xs -> Fragment $ map (map f) xs
     ReactNode reactEl attrs childs -> ReactNode reactEl (map (map f) attrs) $ map (map f) childs

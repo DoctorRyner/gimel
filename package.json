@@ -1,7 +1,7 @@
 {
   "name": "gimel-core",
   "version": "0.1@beta",
-  "license": "MIT",
+  "license": "ISC",
   "description": "",
   "main": "index.js",
   "directories": {
@@ -11,12 +11,11 @@
     "watch": "spago build --watch"
   },
   "author": "",
-  "license": "ISC",
   "devDependencies": {},
   "dependencies": {
-    "@types/react": "^16.9.32",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "@types/react": "^17.0.11",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0"
   }
